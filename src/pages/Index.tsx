@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { motion, useAnimation, PanInfo, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { isSameDay } from 'date-fns';
+import { RewardCeremony } from '@/components/dashboard/RewardCeremony';
 
 export default function Index() {
   const { session, loading: sessionLoading } = useSession();
@@ -21,18 +22,19 @@ export default function Index() {
   const [isOverrideMode, setIsOverrideMode] = useState(false);
   const [randomTask, setRandomTask] = useState<SimpleTask | null>(null);
   const [view, setView] = useState<'lab' | 'task' | 'day'>('task');
+  const [showCeremony, setShowCeremony] = useState(false);
   const navigate = useNavigate();
   const controls = useAnimation();
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 390);
 
-  // Update window width on resize for accurate snapping
+  const prevIsAllDone = useRef(false);
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Redirect to login if no session
   useEffect(() => {
     if (!sessionLoading && !session) {
       navigate('/login');
@@ -80,6 +82,14 @@ export default function Index() {
 
   const isAllDone = isCentralDone && isLabDone;
 
+  // Trigger ceremony when all tasks are completed for the first time
+  useEffect(() => {
+    if (isAllDone && !prevIsAllDone.current) {
+      setShowCeremony(true);
+    }
+    prevIsAllDone.current = isAllDone;
+  }, [isAllDone]);
+
   const shuffleTask = () => {
     const remainingTasks = eligibleTasks.filter(t => !t.completed_today && !isTaskSkippedToday(t));
     if (remainingTasks.length > 0) {
@@ -117,7 +127,6 @@ export default function Index() {
     }
   }, [eligibleTasks]);
 
-  // Calculate the X offset based on the current view
   const getXOffset = () => {
     if (view === 'lab') return 0;
     if (view === 'task') return -windowWidth;
@@ -125,7 +134,6 @@ export default function Index() {
     return -windowWidth;
   };
 
-  // Animate to the correct position whenever the view or window width changes
   useEffect(() => {
     controls.start({ 
       x: getXOffset(),
@@ -134,24 +142,17 @@ export default function Index() {
   }, [view, windowWidth, controls]);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
-    const threshold = windowWidth * 0.15; // 15% of screen width to trigger swipe
+    const threshold = windowWidth * 0.15;
     const velocityThreshold = 500;
     const { offset, velocity } = info;
 
-    // Determine if we should change view based on distance or velocity
     if (offset.x < -threshold || velocity.x < -velocityThreshold) {
-      // Swiping Left (Next View)
       if (view === 'lab') setView('task');
       else if (view === 'task') setView('day');
     } else if (offset.x > threshold || velocity.x > velocityThreshold) {
-      // Swiping Right (Previous View)
       if (view === 'day') setView('task');
       else if (view === 'task') setView('lab');
     }
-    
-    // We don't call controls.start here because the useEffect above 
-    // will handle snapping to the correct (new or old) position 
-    // once the 'view' state is processed.
   };
 
   if (sessionLoading || tasksLoading) {
@@ -167,11 +168,20 @@ export default function Index() {
 
   if (!session) return null;
 
+  const completedCount = [...eligibleTasks, ...labTasks].filter(t => t.completed_today).length;
+
   return (
     <div className={cn(
       "h-screen transition-colors duration-1000 overflow-hidden select-none",
       isAllDone ? "bg-black" : isCentralDone ? "bg-[#1a0d00]" : "bg-background"
     )}>
+      <RewardCeremony 
+        isOpen={showCeremony} 
+        onClose={() => setShowCeremony(false)} 
+        streak={tasks[0]?.habit_level || 0} // Using a task level as a proxy for streak for now
+        completedCount={completedCount}
+      />
+
       <div className="fixed top-10 left-10 z-[100]">
         <Link to="/analytics">
           <Button
@@ -215,7 +225,6 @@ export default function Index() {
         onDragEnd={handleDragEnd}
         dragMomentum={false}
       >
-        {/* View 1: Habit Lab */}
         <div className={cn(
           "w-screen h-full overflow-y-auto transition-opacity duration-700",
           isAllDone ? "opacity-20" : "opacity-100"
@@ -223,7 +232,6 @@ export default function Index() {
           <HabitLab />
         </div>
 
-        {/* View 2: Main Task View */}
         <div className="w-screen h-full relative overflow-hidden">
           <div className="absolute top-10 right-10 z-[100]">
             <ScreenBreakTimer />
@@ -304,7 +312,6 @@ export default function Index() {
                 </>
               )}
 
-              {/* Navigation Hints */}
               <div className="flex justify-between items-center px-4 pt-8 opacity-20">
                 <div className="flex items-center gap-1">
                   <ChevronLeft className="w-3 h-3 text-white" />
@@ -319,7 +326,6 @@ export default function Index() {
           </div>
         </div>
 
-        {/* View 3: Day Reminder */}
         <div className={cn(
           "w-screen h-full overflow-hidden transition-opacity duration-700",
           isAllDone ? "opacity-10" : "opacity-100"
@@ -328,7 +334,6 @@ export default function Index() {
         </div>
       </motion.div>
 
-      {/* Bottom Control Bar */}
       <div className={cn(
         "fixed bottom-10 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] max-w-md z-50 transition-all duration-1000",
         isAllDone ? "opacity-20 translate-y-4 grayscale" : "opacity-100"

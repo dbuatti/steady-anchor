@@ -7,16 +7,17 @@ import { UserHabitRecord } from "@/types/habit";
  * - Binary: 1 completion = 200 XP (High reward for critical adherence)
  */
 
+const BASE_XP_PER_LEVEL = 300;
+const MAX_XP_PER_LEVEL = 1200; // Cap the curve to prevent glacial leveling
+
 /**
  * Calculates the XP required to reach the NEXT level from the current level.
- * Level 1 -> 2: 300 XP (Fast initial hook)
- * Level 2 -> 3: 450 XP
- * Level 3 -> 4: 675 XP
  */
 export const getXpForNextHabitLevel = (level: number): number => {
-  if (level <= 0) return 300;
-  // Base 300 XP, growing by 50% each level
-  return Math.round(300 * Math.pow(1.5, level - 1));
+  if (level <= 0) return BASE_XP_PER_LEVEL;
+  // Base 300 XP, growing by 50% each level, but capped at 1200
+  const calculated = Math.round(BASE_XP_PER_LEVEL * Math.pow(1.5, level - 1));
+  return Math.min(calculated, MAX_XP_PER_LEVEL);
 };
 
 /**
@@ -40,26 +41,42 @@ export const calculateHabitLevel = (xp: number): number => {
 };
 
 /**
+ * Returns a multiplier based on the current streak.
+ */
+export const getStreakMultiplier = (streak: number): number => {
+  if (streak >= 30) return 1.25;
+  if (streak >= 7) return 1.1;
+  return 1.0;
+};
+
+/**
  * Calculates how much XP is earned for a single completion of a Simple Task.
  */
-export const getXpGainForTask = (type: 'count' | 'time', value: number): number => {
+export const getXpGainForTask = (type: 'count' | 'time', value: number, multiplier: number = 1.0): number => {
   // value is seconds for 'time', reps for 'count'
-  const multiplier = type === 'count' ? 25 : 1;
-  return value * multiplier;
+  const baseMultiplier = type === 'count' ? 25 : 1;
+  return Math.round(value * baseMultiplier * multiplier);
 };
 
 /**
  * Calculates how much XP is earned for a Dashboard Habit completion.
  */
-export const getXpGainPerCompletion = (value: number, unit: string, isBonus: boolean = false): number => {
-  // value is minutes for 'min', reps for 'reps', doses for 'dose'
-  let multiplier = 1;
+export const getXpGainPerCompletion = (
+  value: number, 
+  unit: string, 
+  isBonus: boolean = false, 
+  streak: number = 0,
+  effortMultiplier: number = 1.0
+): number => {
+  let unitMultiplier = 1;
   
-  if (unit === 'min') multiplier = 60;
-  else if (unit === 'reps') multiplier = 25;
-  else if (unit === 'dose') multiplier = 200;
+  if (unit === 'min') unitMultiplier = 60;
+  else if (unit === 'reps') unitMultiplier = 25;
+  else if (unit === 'dose') unitMultiplier = 200;
 
-  const baseXP = value * multiplier;
+  const streakMultiplier = getStreakMultiplier(streak);
+  const baseXP = value * unitMultiplier * effortMultiplier * streakMultiplier;
+  
   return isBonus ? Math.round(baseXP * 0.5) : Math.round(baseXP);
 };
 

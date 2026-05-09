@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { getTodayDateString } from '@/utils/time-utils';
 import { isSameDay, differenceInDays, parseISO } from 'date-fns';
-import { calculateHabitLevel, getXpGainForTask } from '@/utils/habit-leveling';
+import { calculateHabitLevel, getXpGainForTask, getXpForNextHabitLevel } from '@/utils/habit-leveling';
 
 export interface SimpleTask {
   id: string;
@@ -18,6 +18,7 @@ export interface SimpleTask {
   updated_at: string;
   habit_xp: number;
   habit_level: number;
+  effort_multiplier?: number;
 }
 
 export function useSimpleTasks() {
@@ -51,11 +52,10 @@ export function useSimpleTasks() {
       if (tasksError) throw tasksError;
 
       const tasksWithProgress = await Promise.all((tasksData || []).map(async (task) => {
-        // --- XP DECAY LOGIC ---
+        // --- XP DECAY LOGIC (Percentage Based) ---
         const lastUpdate = parseISO(task.updated_at);
         const todayStart = parseISO(todayStartTime);
         
-        // If the task hasn't been updated today, check for missed days
         if (lastUpdate < todayStart) {
           const { data: lastLog } = await supabase
             .from('simple_task_logs')
@@ -69,14 +69,11 @@ export function useSimpleTasks() {
             const lastCompletionDate = parseISO(lastLog.completed_at);
             const lastLogDateStr = new Intl.DateTimeFormat('en-CA', {
               timeZone: tz,
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit'
+              year: 'numeric', month: '2-digit', day: '2-digit'
             }).format(lastCompletionDate);
 
             const { data: lastBoundaries } = await supabase.rpc('get_day_boundaries', {
-              p_user_id: userId,
-              p_target_date: lastLogDateStr
+              p_user_id: userId, p_target_date: lastLogDateStr
             });
 
             if (lastBoundaries && lastBoundaries[0]) {
@@ -85,54 +82,48 @@ export function useSimpleTasks() {
               const missedDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
               if (missedDays > 0) {
-                // Penalty: Lose 1 session's worth of XP for every day missed
-                // We do this by inserting a negative log entry
-                const xpLossValue = -(task.current_value * missedDays);
+                // Penalty: 5% of total XP per missed day, capped at one level's worth
+                const { data: currentLogs } = await supabase
+                  .from('simple_task_logs')
+                  .select('value_at_completion')
+                  .eq('task_id', task.id);
+                
+                const currentTotalXp = (currentLogs || []).reduce((sum, log) => 
+                  sum + getXpGainForTask(task.task_type, log.value_at_completion || 0), 0
+                );
+                
+                const currentLevel = calculateHabitLevel(currentTotalXp);
+                const maxLoss = getXpForNextHabitLevel(currentLevel);
+                const calculatedLoss = Math.round(currentTotalXp * 0.05 * missedDays);
+                const finalXpLoss = Math.min(calculatedLoss, maxLoss);
+                
+                // Convert XP loss back to "value" for the log
+                const multiplier = task.task_type === 'count' ? 25 : 1;
+                const valueLoss = -(finalXpLoss / multiplier);
                 
                 await supabase.from('simple_task_logs').insert({
                   task_id: task.id,
                   user_id: userId,
-                  value_at_completion: xpLossValue,
+                  value_at_completion: valueLoss,
                   increased: false 
                 });
 
-                // Update the task timestamp so we don't decay again until tomorrow
-                await supabase
-                  .from('simple_tasks')
-                  .update({ updated_at: new Date().toISOString() })
-                  .eq('id', task.id);
+                await supabase.from('simple_tasks').update({ updated_at: new Date().toISOString() }).eq('id', task.id);
               }
             }
           }
         }
 
-        // Total XP (Sum of scaled values in logs, including negative decay logs)
-        const { data: logsForXp } = await supabase
-          .from('simple_task_logs')
-          .select('value_at_completion')
-          .eq('task_id', task.id);
-
+        const { data: logsForXp } = await supabase.from('simple_task_logs').select('value_at_completion').eq('task_id', task.id);
         const habit_xp = Math.max(0, (logsForXp || []).reduce((sum, log) => 
-          sum + getXpGainForTask(task.task_type, log.value_at_completion || 0), 0
+          sum + getXpGainForTask(task.task_type, log.value_at_completion || 0, task.effort_multiplier || 1.0), 0
         ));
         const habit_level = calculateHabitLevel(habit_xp);
 
-        // Daily completion check
-        const { count: dailyCount } = await supabase
-          .from('simple_task_logs')
-          .select('*', { count: 'exact', head: true })
-          .eq('task_id', task.id)
-          .gte('completed_at', todayStartTime)
-          .lt('completed_at', todayEndTime)
-          .gt('value_at_completion', 0); // Only count positive logs as completions
+        const { count: dailyCount } = await supabase.from('simple_task_logs').select('*', { count: 'exact', head: true })
+          .eq('task_id', task.id).gte('completed_at', todayStartTime).lt('completed_at', todayEndTime).gt('value_at_completion', 0);
 
-        return {
-          ...task,
-          current_progress: 0,
-          completed_today: (dailyCount || 0) > 0,
-          habit_xp,
-          habit_level
-        };
+        return { ...task, current_progress: 0, completed_today: (dailyCount || 0) > 0, habit_xp, habit_level };
       }));
 
       return tasksWithProgress as SimpleTask[];
@@ -143,10 +134,21 @@ export function useSimpleTasks() {
   const skipTaskMutation = useMutation({
     mutationFn: async (taskId: string) => {
       if (!userId) return;
-      const { error } = await supabase
-        .from('simple_tasks')
-        .update({ last_skipped_at: new Date().toISOString() })
-        .eq('id', taskId);
+      
+      // --- MOMENTUM TAX ---
+      // Skipping costs a small fixed amount of XP (e.g., 10 XP)
+      const task = tasks.find(t => t.id === taskId);
+      const multiplier = task?.task_type === 'count' ? 25 : 1;
+      const valueTax = -(10 / multiplier);
+
+      await supabase.from('simple_task_logs').insert({
+        task_id: taskId,
+        user_id: userId,
+        value_at_completion: valueTax,
+        increased: false
+      });
+
+      const { error } = await supabase.from('simple_tasks').update({ last_skipped_at: new Date().toISOString() }).eq('id', taskId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -157,75 +159,38 @@ export function useSimpleTasks() {
   const completeTaskMutation = useMutation({
     mutationFn: async (taskId: string) => {
       if (!userId) return;
-
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
-
       const currentLevel = task.habit_level;
 
       const { error: logError } = await supabase.from('simple_task_logs').insert({
-        task_id: taskId,
-        user_id: userId,
-        value_at_completion: task.current_value,
-        increased: false 
+        task_id: taskId, user_id: userId, value_at_completion: task.current_value, increased: false 
       });
-
       if (logError) throw logError;
 
-      const { data: logsAfter } = await supabase
-        .from('simple_task_logs')
-        .select('value_at_completion')
-        .eq('task_id', taskId);
-      
+      const { data: logsAfter } = await supabase.from('simple_task_logs').select('value_at_completion').eq('task_id', taskId);
       const newXp = Math.max(0, (logsAfter || []).reduce((sum, log) => 
-        sum + getXpGainForTask(task.task_type, log.value_at_completion || 0), 0
+        sum + getXpGainForTask(task.task_type, log.value_at_completion || 0, task.effort_multiplier || 1.0), 0
       ));
       const newLevel = calculateHabitLevel(newXp);
-      
       const leveledUp = newLevel > currentLevel;
       const shouldIncrease = leveledUp && task.increment_value > 0;
       const newValue = shouldIncrease ? task.current_value + task.increment_value : task.current_value;
 
+      await supabase.from('simple_tasks').update({ 
+        current_value: newValue, updated_at: new Date().toISOString() 
+      }).eq('id', taskId);
+
       if (shouldIncrease) {
-        const { error: updateError } = await supabase
-          .from('simple_tasks')
-          .update({ 
-            current_value: newValue, 
-            updated_at: new Date().toISOString() 
-          })
-          .eq('id', taskId);
-        if (updateError) throw updateError;
-        
-        await supabase
-          .from('simple_task_logs')
-          .update({ increased: true })
-          .eq('task_id', taskId)
-          .order('completed_at', { ascending: false })
-          .limit(1);
-      } else {
-        await supabase
-          .from('simple_tasks')
-          .update({ updated_at: new Date().toISOString() })
-          .eq('id', taskId);
+        await supabase.from('simple_task_logs').update({ increased: true }).eq('task_id', taskId).order('completed_at', { ascending: false }).limit(1);
       }
 
-      return { 
-        increased: shouldIncrease, 
-        newValue, 
-        newLevel,
-        totalXp: newXp
-      };
+      return { increased: shouldIncrease, newValue, newLevel, totalXp: newXp };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['simpleTasks', userId] });
     }
   });
 
-  return { 
-    tasks, 
-    loading, 
-    completeTask: completeTaskMutation.mutateAsync,
-    skipTask: skipTaskMutation.mutateAsync,
-    refresh: () => queryClient.invalidateQueries({ queryKey: ['simpleTasks', userId] })
-  };
+  return { tasks, loading, completeTask: completeTaskMutation.mutateAsync, skipTask: skipTaskMutation.mutateAsync, refresh: () => queryClient.invalidateQueries({ queryKey: ['simpleTasks', userId] }) };
 }
