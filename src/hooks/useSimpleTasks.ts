@@ -51,11 +51,12 @@ export function useSimpleTasks() {
       if (tasksError) throw tasksError;
 
       const tasksWithProgress = await Promise.all((tasksData || []).map(async (task) => {
-        // --- DECAY LOGIC ---
+        // --- XP DECAY LOGIC ---
         const lastUpdate = parseISO(task.updated_at);
         const todayStart = parseISO(todayStartTime);
         
-        if (task.increment_value > 0 && lastUpdate < todayStart) {
+        // If the task hasn't been updated today, check for missed days
+        if (lastUpdate < todayStart) {
           const { data: lastLog } = await supabase
             .from('simple_task_logs')
             .select('completed_at')
@@ -84,33 +85,36 @@ export function useSimpleTasks() {
               const missedDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
               if (missedDays > 0) {
-                const decayAmount = task.increment_value * missedDays;
-                const newValue = Math.max(task.increment_value, task.current_value - decayAmount);
+                // Penalty: Lose 1 session's worth of XP for every day missed
+                // We do this by inserting a negative log entry
+                const xpLossValue = -(task.current_value * missedDays);
                 
-                if (newValue !== task.current_value) {
-                  await supabase
-                    .from('simple_tasks')
-                    .update({ 
-                      current_value: newValue, 
-                      updated_at: new Date().toISOString() 
-                    })
-                    .eq('id', task.id);
-                  task.current_value = newValue;
-                }
+                await supabase.from('simple_task_logs').insert({
+                  task_id: task.id,
+                  user_id: userId,
+                  value_at_completion: xpLossValue,
+                  increased: false 
+                });
+
+                // Update the task timestamp so we don't decay again until tomorrow
+                await supabase
+                  .from('simple_tasks')
+                  .update({ updated_at: new Date().toISOString() })
+                  .eq('id', task.id);
               }
             }
           }
         }
 
-        // Total XP (Sum of scaled values in logs)
+        // Total XP (Sum of scaled values in logs, including negative decay logs)
         const { data: logsForXp } = await supabase
           .from('simple_task_logs')
           .select('value_at_completion')
           .eq('task_id', task.id);
 
-        const habit_xp = (logsForXp || []).reduce((sum, log) => 
+        const habit_xp = Math.max(0, (logsForXp || []).reduce((sum, log) => 
           sum + getXpGainForTask(task.task_type, log.value_at_completion || 0), 0
-        );
+        ));
         const habit_level = calculateHabitLevel(habit_xp);
 
         // Daily completion check
@@ -119,11 +123,12 @@ export function useSimpleTasks() {
           .select('*', { count: 'exact', head: true })
           .eq('task_id', task.id)
           .gte('completed_at', todayStartTime)
-          .lt('completed_at', todayEndTime);
+          .lt('completed_at', todayEndTime)
+          .gt('value_at_completion', 0); // Only count positive logs as completions
 
         return {
           ...task,
-          current_progress: 0, // Deprecated stability field
+          current_progress: 0,
           completed_today: (dailyCount || 0) > 0,
           habit_xp,
           habit_level
@@ -156,10 +161,8 @@ export function useSimpleTasks() {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      // 1. Calculate current level before logging
       const currentLevel = task.habit_level;
 
-      // 2. Log the completion
       const { error: logError } = await supabase.from('simple_task_logs').insert({
         task_id: taskId,
         user_id: userId,
@@ -169,22 +172,20 @@ export function useSimpleTasks() {
 
       if (logError) throw logError;
 
-      // 3. Calculate new level after log
       const { data: logsAfter } = await supabase
         .from('simple_task_logs')
         .select('value_at_completion')
         .eq('task_id', taskId);
       
-      const newXp = (logsAfter || []).reduce((sum, log) => 
+      const newXp = Math.max(0, (logsAfter || []).reduce((sum, log) => 
         sum + getXpGainForTask(task.task_type, log.value_at_completion || 0), 0
-      );
+      ));
       const newLevel = calculateHabitLevel(newXp);
       
       const leveledUp = newLevel > currentLevel;
       const shouldIncrease = leveledUp && task.increment_value > 0;
       const newValue = shouldIncrease ? task.current_value + task.increment_value : task.current_value;
 
-      // 4. Update task if leveled up
       if (shouldIncrease) {
         const { error: updateError } = await supabase
           .from('simple_tasks')
@@ -195,7 +196,6 @@ export function useSimpleTasks() {
           .eq('id', taskId);
         if (updateError) throw updateError;
         
-        // Mark the log as the one that triggered the increase
         await supabase
           .from('simple_task_logs')
           .update({ increased: true })
