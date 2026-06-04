@@ -25,8 +25,10 @@ const taskIconMap: Record<string, any> = {
 };
 
 export const HabitLevelBars: React.FC<HabitLevelBarsProps> = ({ tasks }) => {
-  // Show all active tasks, sorted by level descending
-  const masteryTasks = [...tasks].sort((a, b) => (b.task.habit_level || 1) - (a.task.habit_level || 1));
+  // Only progressive tasks (increment_value > 0) have leveling — maintenance habits excluded
+  const masteryTasks = [...tasks]
+    .filter(t => t.task.increment_value > 0)
+    .sort((a, b) => (b.task.habit_level || 1) - (a.task.habit_level || 1));
 
   return (
     <Card className="rounded-[2rem] border-0 shadow-xl shadow-background/50 bg-card/50 backdrop-blur-sm overflow-hidden">

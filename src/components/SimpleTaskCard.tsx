@@ -96,7 +96,8 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
   const isNonProgressive = task.increment_value === 0;
   const canComplete = !isTimeTask || isTimerFinished || isNonProgressive;
 
-  // Calculate XP stats for the mastery bar
+  const isProgressive = task.increment_value > 0;
+  // Calculate XP stats for the mastery bar (progressive tasks only)
   const stats = getLevelXpStats(task.habit_xp || 0);
   const progressPercent = (stats.xpInLevel / stats.xpNeededForNext) * 100;
   const xpGain = getXpGainForTask(task.task_type, task.current_value);
@@ -106,27 +107,31 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
       <div className="text-center space-y-4 w-full">
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-6xl font-black tracking-tighter text-white uppercase italic">{task.name}</h2>
-          <div className="flex items-center gap-2 text-white/80">
-            <Star className="w-3 h-3 fill-current" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Level {task.habit_level || 1}</span>
-            <span className="text-[10px] text-white/40">·</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
-              {formatMilestone(task.current_value, task.task_type)}
-            </span>
-          </div>
+          {isProgressive && (
+            <div className="flex items-center gap-2 text-white/80">
+              <Star className="w-3 h-3 fill-current" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Level {task.habit_level || 1}</span>
+              <span className="text-[10px] text-white/40">·</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                {formatMilestone(task.current_value, task.task_type)}
+              </span>
+            </div>
+          )}
         </div>
         
-        <div className="max-w-[220px] mx-auto space-y-2">
-          <div className="flex justify-between text-[9px] font-black uppercase tracking-[0.2em] text-white/50">
-            <span>Mastery XP</span>
-            <span>{Math.round(stats.xpInLevel)}/{stats.xpNeededForNext}</span>
+        {isProgressive && (
+          <div className="max-w-[220px] mx-auto space-y-2">
+            <div className="flex justify-between text-[9px] font-black uppercase tracking-[0.2em] text-white/50">
+              <span>Mastery XP</span>
+              <span>{Math.round(stats.xpInLevel)}/{stats.xpNeededForNext}</span>
+            </div>
+            <Progress value={progressPercent} className="h-1.5 bg-white/10 [&>div]:bg-white shadow-sm" />
+            <div className="flex items-center justify-center gap-1 text-[8px] font-black uppercase tracking-widest text-white/40">
+              <Zap className="w-2 h-2" />
+              Earn +{xpGain} XP per session
+            </div>
           </div>
-          <Progress value={progressPercent} className="h-1.5 bg-white/10 [&>div]:bg-white shadow-sm" />
-          <div className="flex items-center justify-center gap-1 text-[8px] font-black uppercase tracking-widest text-white/40">
-            <Zap className="w-2 h-2" />
-            Earn +{xpGain} XP per session
-          </div>
-        </div>
+        )}
 
         <p className="text-lg font-bold text-white/60 uppercase tracking-widest">
           {isTimeTask 

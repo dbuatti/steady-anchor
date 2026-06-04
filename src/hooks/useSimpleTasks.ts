@@ -52,11 +52,14 @@ export function useSimpleTasks() {
       if (tasksError) throw tasksError;
 
       const tasksWithProgress = await Promise.all((tasksData || []).map(async (task) => {
-        // --- XP DECAY LOGIC (Percentage Based) ---
+        // Non-progressive tasks (increment_value === 0) are maintenance habits — no XP or leveling.
+        const isProgressive = task.increment_value > 0;
+
+        // --- XP DECAY LOGIC ---
         const lastUpdate = parseISO(task.updated_at);
         const todayStart = parseISO(todayStartTime);
-        
-        if (lastUpdate < todayStart) {
+
+        if (isProgressive && lastUpdate < todayStart) {
           const { data: lastLog } = await supabase
             .from('simple_task_logs')
             .select('completed_at')
@@ -110,11 +113,15 @@ export function useSimpleTasks() {
           }
         }
 
-        const { data: logsForXp } = await supabase.from('simple_task_logs').select('value_at_completion').eq('task_id', task.id);
-        const habit_xp = Math.max(0, (logsForXp || []).reduce((sum, log) => 
-          sum + getXpGainForTask(task.task_type, log.value_at_completion || 0, task.effort_multiplier || 1.0), 0
-        ));
-        const habit_level = calculateHabitLevel(habit_xp);
+        let habit_xp = 0;
+        let habit_level = 1;
+        if (isProgressive) {
+          const { data: logsForXp } = await supabase.from('simple_task_logs').select('value_at_completion').eq('task_id', task.id);
+          habit_xp = Math.max(0, (logsForXp || []).reduce((sum, log) =>
+            sum + getXpGainForTask(task.task_type, log.value_at_completion || 0, task.effort_multiplier || 1.0), 0
+          ));
+          habit_level = calculateHabitLevel(habit_xp);
+        }
 
         const { count: dailyCount } = await supabase.from('simple_task_logs').select('*', { count: 'exact', head: true })
           .eq('task_id', task.id).gte('completed_at', todayStartTime).lt('completed_at', todayEndTime).gt('value_at_completion', 0);
@@ -160,12 +167,18 @@ export function useSimpleTasks() {
       const currentLevel = task.habit_level;
 
       const { error: logError } = await supabase.from('simple_task_logs').insert({
-        task_id: taskId, user_id: userId, value_at_completion: task.current_value, increased: false 
+        task_id: taskId, user_id: userId, value_at_completion: task.current_value, increased: false
       });
       if (logError) throw logError;
 
+      // Non-progressive tasks: just mark done, no XP or level-up logic
+      if (task.increment_value === 0) {
+        await supabase.from('simple_tasks').update({ updated_at: new Date().toISOString() }).eq('id', taskId);
+        return { increased: false, newValue: task.current_value, newLevel: 1, totalXp: 0 };
+      }
+
       const { data: logsAfter } = await supabase.from('simple_task_logs').select('value_at_completion').eq('task_id', taskId);
-      const newXp = Math.max(0, (logsAfter || []).reduce((sum, log) => 
+      const newXp = Math.max(0, (logsAfter || []).reduce((sum, log) =>
         sum + getXpGainForTask(task.task_type, log.value_at_completion || 0, task.effort_multiplier || 1.0), 0
       ));
       const newLevel = calculateHabitLevel(newXp);
@@ -173,8 +186,8 @@ export function useSimpleTasks() {
       const shouldIncrease = leveledUp && task.increment_value > 0;
       const newValue = shouldIncrease ? task.current_value + task.increment_value : task.current_value;
 
-      await supabase.from('simple_tasks').update({ 
-        current_value: newValue, updated_at: new Date().toISOString() 
+      await supabase.from('simple_tasks').update({
+        current_value: newValue, updated_at: new Date().toISOString()
       }).eq('id', taskId);
 
       if (shouldIncrease) {
