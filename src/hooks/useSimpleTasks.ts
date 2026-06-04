@@ -82,21 +82,17 @@ export function useSimpleTasks() {
               const missedDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
               if (missedDays > 0) {
-                // Penalty: 5% of total XP per missed day, capped at one level's worth
-                const { data: currentLogs } = await supabase
-                  .from('simple_task_logs')
-                  .select('value_at_completion')
-                  .eq('task_id', task.id);
-                
-                const currentTotalXp = (currentLogs || []).reduce((sum, log) => 
+                // Penalty: lose one session's worth of XP per missed day,
+                // capped at one full level's worth so you can't drop a level in one hit.
+                const xpPerSession = getXpGainForTask(task.task_type, task.current_value);
+                const currentLogs2 = await supabase.from('simple_task_logs').select('value_at_completion').eq('task_id', task.id);
+                const currentTotalXp = ((currentLogs2.data) || []).reduce((sum, log) =>
                   sum + getXpGainForTask(task.task_type, log.value_at_completion || 0), 0
                 );
-                
                 const currentLevel = calculateHabitLevel(currentTotalXp);
                 const maxLoss = getXpForNextHabitLevel(currentLevel);
-                const calculatedLoss = Math.round(currentTotalXp * 0.05 * missedDays);
-                const finalXpLoss = Math.min(calculatedLoss, maxLoss);
-                
+                const finalXpLoss = Math.min(xpPerSession * missedDays, maxLoss);
+
                 // Convert XP loss back to "value" for the log (must match getXpGainForTask rates)
                 const multiplier = task.task_type === 'count' ? 6 : 3;
                 const valueLoss = -(finalXpLoss / multiplier);
