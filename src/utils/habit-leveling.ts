@@ -2,8 +2,8 @@ import { UserHabitRecord } from "@/types/habit";
 
 /**
  * Standardized XP Rewards based on effort:
- * - Time: 1 second = 1 XP (1 minute = 60 XP)
- * - Count: 1 rep = 25 XP (Matches ~10-15 seconds of physical effort)
+ * - Time: 1 second = 3 XP (1 minute = 180 XP)
+ * - Count: 1 rep = 6 XP (~2 seconds equivalent, balanced with time habits)
  * - Binary: 1 completion = 200 XP (High reward for critical adherence)
  */
 
@@ -54,7 +54,7 @@ export const getStreakMultiplier = (streak: number): number => {
  */
 export const getXpGainForTask = (type: 'count' | 'time', value: number, multiplier: number = 1.0): number => {
   // value is seconds for 'time', reps for 'count'
-  const baseMultiplier = type === 'count' ? 25 : 1;
+  const baseMultiplier = type === 'count' ? 6 : 3;
   return Math.round(value * baseMultiplier * multiplier);
 };
 
@@ -70,14 +70,30 @@ export const getXpGainPerCompletion = (
 ): number => {
   let unitMultiplier = 1;
   
-  if (unit === 'min') unitMultiplier = 60;
-  else if (unit === 'reps') unitMultiplier = 25;
+  if (unit === 'min') unitMultiplier = 180;
+  else if (unit === 'reps') unitMultiplier = 6;
   else if (unit === 'dose') unitMultiplier = 200;
+  else unitMultiplier = 3; // seconds
 
   const streakMultiplier = getStreakMultiplier(streak);
   const baseXP = value * unitMultiplier * effortMultiplier * streakMultiplier;
   
   return isBonus ? Math.round(baseXP * 0.5) : Math.round(baseXP);
+};
+
+/**
+ * Formats a habit milestone value into a human-readable achievement string.
+ * e.g. count: "3 reps" / time: "45 sec" or "1m 30s"
+ */
+export const formatMilestone = (value: number, taskType: 'count' | 'time'): string => {
+  if (taskType === 'count') {
+    return `${value} ${value === 1 ? 'rep' : 'reps'}`;
+  }
+  // time: value is in seconds
+  if (value < 60) return `${value} sec`;
+  const mins = Math.floor(value / 60);
+  const secs = value % 60;
+  return secs > 0 ? `${mins}m ${secs}s` : `${mins} min`;
 };
 
 /**

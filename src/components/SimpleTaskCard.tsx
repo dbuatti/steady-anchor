@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { audioManager } from "@/utils/audio";
 import { Progress } from "@/components/ui/progress";
-import { getLevelXpStats, getXpGainForTask } from "@/utils/habit-leveling";
+import { getLevelXpStats, getXpGainForTask, formatMilestone } from "@/utils/habit-leveling";
 
 interface SimpleTaskCardProps {
   task: SimpleTask;
@@ -106,9 +106,13 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
       <div className="text-center space-y-4 w-full">
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-6xl font-black tracking-tighter text-white uppercase italic">{task.name}</h2>
-          <div className="flex items-center gap-1 text-white/80">
+          <div className="flex items-center gap-2 text-white/80">
             <Star className="w-3 h-3 fill-current" />
             <span className="text-[10px] font-black uppercase tracking-widest">Level {task.habit_level || 1}</span>
+            <span className="text-[10px] text-white/40">·</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
+              {formatMilestone(task.current_value, task.task_type)}
+            </span>
           </div>
         </div>
         

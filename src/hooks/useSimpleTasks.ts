@@ -97,8 +97,8 @@ export function useSimpleTasks() {
                 const calculatedLoss = Math.round(currentTotalXp * 0.05 * missedDays);
                 const finalXpLoss = Math.min(calculatedLoss, maxLoss);
                 
-                // Convert XP loss back to "value" for the log
-                const multiplier = task.task_type === 'count' ? 25 : 1;
+                // Convert XP loss back to "value" for the log (must match getXpGainForTask rates)
+                const multiplier = task.task_type === 'count' ? 6 : 3;
                 const valueLoss = -(finalXpLoss / multiplier);
                 
                 await supabase.from('simple_task_logs').insert({
@@ -138,7 +138,7 @@ export function useSimpleTasks() {
       // --- MOMENTUM TAX ---
       // Skipping costs a small fixed amount of XP (e.g., 10 XP)
       const task = tasks.find(t => t.id === taskId);
-      const multiplier = task?.task_type === 'count' ? 25 : 1;
+      const multiplier = task?.task_type === 'count' ? 6 : 3;
       const valueTax = -(10 / multiplier);
 
       await supabase.from('simple_task_logs').insert({

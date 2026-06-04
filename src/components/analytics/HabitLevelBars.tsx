@@ -3,8 +3,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy, Star } from 'lucide-react';
-import { getLevelXpStats } from '@/utils/habit-leveling';
-import { Dumbbell, Timer, Zap, Target } from 'lucide-react';
+import { getLevelXpStats, formatMilestone } from '@/utils/habit-leveling';
+import { Dumbbell, Timer, Zap, Target, BookOpen, Smile, Droplets, Moon, Sun, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HabitLevelBarsProps {
@@ -16,14 +16,17 @@ const taskIconMap: Record<string, any> = {
   'Push-ups': Dumbbell,
   'Be Still': Target,
   'Screen Break': Timer,
+  'Reading': BookOpen,
+  'Walking': Activity,
+  'Shower': Droplets,
+  'Brush Teeth (Morning)': Sun,
+  'Brush Teeth (Evening)': Moon,
+  'Duolingo': Smile,
 };
 
 export const HabitLevelBars: React.FC<HabitLevelBarsProps> = ({ tasks }) => {
-  // Filter for specific tasks, handling potential naming variations
-  const masteryTasks = tasks.filter(t => {
-    const name = t.task.name;
-    return name === 'Pushups' || name === 'Push-ups' || name === 'Be Still' || name === 'Screen Break';
-  });
+  // Show all active tasks, sorted by level descending
+  const masteryTasks = [...tasks].sort((a, b) => (b.task.habit_level || 1) - (a.task.habit_level || 1));
 
   return (
     <Card className="rounded-[2rem] border-0 shadow-xl shadow-background/50 bg-card/50 backdrop-blur-sm overflow-hidden">
@@ -54,6 +57,10 @@ export const HabitLevelBars: React.FC<HabitLevelBarsProps> = ({ tasks }) => {
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                           Rank: {task.habit_level > 10 ? 'Master' : task.habit_level > 5 ? 'Adept' : 'Novice'}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/50">·</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/70">
+                          {formatMilestone(task.current_value, task.task_type)}
                         </span>
                       </div>
                     </div>
