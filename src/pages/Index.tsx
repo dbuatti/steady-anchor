@@ -6,6 +6,7 @@ import { DayReminder } from '@/components/DayReminder';
 import { HabitLab } from '@/components/HabitLab';
 import { ScreenBreakTimer } from '@/components/ScreenBreakTimer';
 import { NewUserTutorial } from '@/components/NewUserTutorial';
+import { HabitTemplatesPanel } from '@/components/HabitTemplatesPanel';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, LayoutGrid, RefreshCw, ChevronRight, ChevronLeft, Moon, Sparkles, BarChart3, Plus } from "lucide-react";
@@ -327,6 +328,17 @@ export default function Index() {
                     )}
                   </div>
                 </>
+              )}
+
+              {/* Templates Quick-Add Panel — shown when user has few habits */}
+              {eligibleTasks.length < 3 && !isCentralDone && !isOverrideMode && (
+                <div className="pt-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                  <HabitTemplatesPanel
+                    onAddHabit={(data) => {
+                      navigate('/create-habit', { state: { templateToPreFill: data } });
+                    }}
+                  />
+                </div>
               )}
 
               <div className="flex justify-between items-center px-4 pt-8 opacity-20">
