@@ -28,6 +28,7 @@ const Slider = React.forwardRef<
         if (typeof ref === 'function') ref(node);
         else if (ref) (ref as React.MutableRefObject<HTMLSpanElement | null>).current = node;
       }}
+      data-no-drag
       className={cn(
         "relative flex w-full touch-none select-none items-center",
         className,
