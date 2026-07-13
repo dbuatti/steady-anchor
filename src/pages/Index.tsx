@@ -5,9 +5,10 @@ import { SimpleTaskRow } from '@/components/SimpleTaskRow';
 import { DayReminder } from '@/components/DayReminder';
 import { HabitLab } from '@/components/HabitLab';
 import { ScreenBreakTimer } from '@/components/ScreenBreakTimer';
+import { NewUserTutorial } from '@/components/NewUserTutorial';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, LayoutGrid, RefreshCw, ChevronRight, ChevronLeft, Moon, Sparkles, Star } from "lucide-react";
+import { Loader2, LayoutGrid, RefreshCw, ChevronRight, ChevronLeft, Moon, Sparkles, BarChart3, Plus } from "lucide-react";
 import { useSession } from '@/contexts/SessionContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -178,22 +179,42 @@ export default function Index() {
       <RewardCeremony 
         isOpen={showCeremony} 
         onClose={() => setShowCeremony(false)} 
-        streak={tasks[0]?.habit_level || 0} // Using a task level as a proxy for streak for now
+        streak={tasks[0]?.habit_level || 0}
         completedCount={completedCount}
       />
+
+      <NewUserTutorial />
 
       <div className="fixed top-10 left-10 z-[100]">
         <Link to="/analytics">
           <Button
             variant="ghost"
             size="icon"
-            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500"
-            title="Analytics"
+            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500 group relative"
+            title="View Analytics"
           >
-            <Star className="w-6 h-6" />
+            <BarChart3 className="w-6 h-6" />
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+              Analytics
+            </span>
           </Button>
         </Link>
       </div>
+
+      <div className="fixed top-10 right-10 z-[100]">
+        <ScreenBreakTimer />
+      </div>
+
+      {/* Floating Add Habit Button */}
+      <Link to="/create-habit">
+        <Button
+          className="fixed bottom-28 right-6 z-[100] h-14 w-14 rounded-full shadow-2xl"
+          size="icon"
+          title="Add Habit"
+        >
+          <Plus className="w-7 h-7" />
+        </Button>
+      </Link>
 
       <AnimatePresence>
         {isCentralDone && !isAllDone && (
@@ -232,11 +253,7 @@ export default function Index() {
           <HabitLab />
         </div>
 
-        <div className="w-screen h-full relative overflow-hidden">
-          <div className="absolute top-10 right-10 z-[100]">
-            <ScreenBreakTimer />
-          </div>
-          
+        <div className="w-screen h-full relative overflow-hidden">          
           <div className="h-full overflow-y-auto pb-48">
             <div className={cn(
               "container max-w-2xl pt-20 px-8 space-y-10 transition-all duration-1000",
