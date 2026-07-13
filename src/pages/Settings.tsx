@@ -17,8 +17,9 @@ import { SettingsSkeleton } from '@/components/dashboard/SettingsSkeleton';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  LogOut, Anchor, Settings2, Clock, User, CheckCircle2, Globe, Loader2, Volume2, Smartphone, Trophy, Brain, Plus
+  LogOut, Anchor, Settings2, Clock, User, CheckCircle2, Globe, Loader2, Volume2, Smartphone, Trophy, Brain, Plus, Sun, Moon, Monitor
 } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Accordion 
 } from '@/components/ui/accordion';
@@ -38,6 +39,7 @@ const Settings = () => {
   const { data: dashboardData } = useDashboardData();
   const queryClient = useQueryClient();
   const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
+  const { theme, setTheme } = useTheme();
   
   const [activeHabitId, setActiveHabitId] = useState<string | null>(null);
   const [showNewHabitModal, setShowNewHabitModal] = useState(false);
@@ -207,6 +209,22 @@ const Settings = () => {
                 <div><p className="font-black uppercase tracking-tight">Neurodivergent Mode</p><p className="text-xs text-muted-foreground">Enables small increments and modular task capsules.</p></div>
               </div>
               <Switch checked={profile?.neurodivergent_mode} onCheckedChange={(val) => updateProfile({ neurodivergent_mode: val })} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl shadow-sm border border-border bg-card">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 rounded-xl p-2.5">{theme === 'dark' ? <Moon className="w-5 h-5 text-primary" /> : theme === 'light' ? <Sun className="w-5 h-5 text-primary" /> : <Monitor className="w-5 h-5 text-primary" />}</div>
+                <div><p className="font-black uppercase text-[10px] tracking-tight">Appearance</p><p className="text-[10px] text-muted-foreground capitalize">{theme} mode</p></div>
+              </div>
+              <div className="flex gap-1">
+                <Button variant={theme === 'light' ? 'default' : 'ghost'} size="sm" className="rounded-xl h-9 w-9 p-0" onClick={() => setTheme('light')}><Sun className="w-4 h-4" /></Button>
+                <Button variant={theme === 'dark' ? 'default' : 'ghost'} size="sm" className="rounded-xl h-9 w-9 p-0" onClick={() => setTheme('dark')}><Moon className="w-4 h-4" /></Button>
+                <Button variant={theme === 'system' ? 'default' : 'ghost'} size="sm" className="rounded-xl h-9 w-9 p-0" onClick={() => setTheme('system')}><Monitor className="w-4 h-4" /></Button>
+              </div>
             </div>
           </CardContent>
         </Card>

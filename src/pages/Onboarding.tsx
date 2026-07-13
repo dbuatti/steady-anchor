@@ -238,7 +238,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
               <h2 className="text-2xl font-bold mb-2">Focus Areas</h2>
               <p className="text-muted-foreground">Which areas do you want to focus on?</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 max-h-[280px] overflow-y-auto pr-2">
               {habitCategories.filter(cat => cat.value !== 'anchor').map((cat) => {
                 const Icon = cat.icon;
                 const isSelected = selectedFocusAreas.includes(cat.value);
