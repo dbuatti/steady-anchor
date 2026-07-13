@@ -12,9 +12,22 @@ const Slider = React.forwardRef<
   React.useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const handler = (e: PointerEvent) => e.stopPropagation();
-    el.addEventListener('pointerdown', handler);
-    return () => el.removeEventListener('pointerdown', handler);
+
+    const stop = (e: Event) => {
+      e.stopPropagation();
+    };
+
+    el.addEventListener('pointerdown', stop);
+    el.addEventListener('touchstart', stop);
+    el.addEventListener('pointermove', stop);
+    el.addEventListener('touchmove', stop);
+
+    return () => {
+      el.removeEventListener('pointerdown', stop);
+      el.removeEventListener('touchstart', stop);
+      el.removeEventListener('pointermove', stop);
+      el.removeEventListener('touchmove', stop);
+    };
   }, []);
 
   return (
@@ -25,7 +38,7 @@ const Slider = React.forwardRef<
         else if (ref) (ref as React.MutableRefObject<HTMLSpanElement | null>).current = node;
       }}
       className={cn(
-        "relative flex w-full touch-none select-none items-center",
+        "relative flex w-full touch-auto select-none items-center",
         className,
       )}
       {...props}
