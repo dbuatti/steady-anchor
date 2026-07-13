@@ -99,7 +99,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <User className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Welcome to Adaptive Growth!</h2>
+              <h2 className="text-2xl font-bold mb-2">Welcome to Steady Anchor!</h2>
               <p className="text-muted-foreground">Let's set up your profile.</p>
             </div>
             <div className="space-y-4">

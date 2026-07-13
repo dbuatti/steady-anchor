@@ -25,10 +25,10 @@ const HelpPage = () => {
             <div className="bg-primary/10 p-3 rounded-xl">
               <Lightbulb className="w-6 h-6 text-primary" />
             </div>
-            <h2 className="text-xl font-bold text-foreground">Welcome to Your Adaptive Growth Journey!</h2>
+            <h2 className="text-xl font-bold text-foreground">Welcome to Your Steady Anchor Journey!</h2>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            This guide explains how your Adaptive Growth Coach works. We focus on building sustainable habits through small, consistent actions, adapting to your unique pace and needs.
+            This guide explains how your Steady Anchor Coach works. We focus on building sustainable habits through small, consistent actions, adapting to your unique pace and needs.
           </p>
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div className="flex items-center gap-2">

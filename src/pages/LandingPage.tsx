@@ -22,7 +22,7 @@ const LandingPage = () => {
             <div className="w-8 h-8 bg-landing-indigo rounded-lg flex items-center justify-center shadow-lg shadow-landing-indigo/20">
               <Zap className="w-5 h-5 text-landing-primary-foreground" />
             </div>
-            <span className="font-black text-xl tracking-tighter uppercase italic">Adaptive Growth</span>
+            <span className="font-black text-xl tracking-tighter uppercase italic">Steady Anchor</span>
           </div>
           <Link to="/login">
             <Button variant="ghost" className="font-bold text-muted-foreground hover:text-foreground">Login</Button>
@@ -74,7 +74,7 @@ const LandingPage = () => {
           <div className="text-center space-y-4">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter">How it Works</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Adaptive Growth is designed to meet you where you are, making habit building accessible and sustainable.
+              Steady Anchor is designed to meet you where you are, making habit building accessible and sustainable.
             </p>
           </div>
 
@@ -177,7 +177,7 @@ const LandingPage = () => {
         <div className="text-center space-y-4">
           <h2 className="text-4xl md:text-5xl font-black tracking-tighter">See It In Action</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            A glimpse into how Adaptive Growth helps you manage your daily habits.
+            A glimpse into how Steady Anchor helps you manage your daily habits.
           </p>
         </div>
 
@@ -255,7 +255,7 @@ const LandingPage = () => {
           <div className="text-center space-y-4">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter">What Our Users Say</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Real stories from people transforming their habits with Adaptive Growth.
+              Real stories from people transforming their habits with Steady Anchor.
             </p>
           </div>
 
@@ -347,9 +347,9 @@ const LandingPage = () => {
             <div className="w-6 h-6 bg-landing-indigo rounded-md flex items-center justify-center">
               <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="font-black text-lg tracking-tighter uppercase italic">Adaptive Growth</span>
+            <span className="font-black text-lg tracking-tighter uppercase italic">Steady Anchor</span>
           </div>
-          <p className="text-sm">&copy; {new Date().getFullYear()} Adaptive Growth. All rights reserved.</p>
+          <p className="text-sm">&copy; {new Date().getFullYear()} Steady Anchor. All rights reserved.</p>
         </div>
       </footer>
     </div>

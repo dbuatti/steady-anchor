@@ -30,10 +30,10 @@ export const useTabProgress = () => {
     if (activeTimer) {
       const timeStr = formatTimeDisplay(activeTimer.remaining);
       // Updated title to show remaining time countdown
-      title = `${timeStr} rem ↓ ${activeTimer.habitName} – ${activeTimer.label} | Adaptive Growth`;
+      title = `${timeStr} rem ↓ ${activeTimer.habitName} – ${activeTimer.label} | Steady Anchor`;
     } else {
-      // Default: Adaptive Growth • 12/18 • 🔥10
-      title = `Adaptive Growth • ${completed}/${total} • 🔥${streak}`;
+      // Default: Steady Anchor • 12/18 • 🔥10
+      title = `Steady Anchor • ${completed}/${total} • 🔥${streak}`;
     }
     
     const originalTitle = document.title;

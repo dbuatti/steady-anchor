@@ -1,4 +1,4 @@
-# Momentum
+# Steady Anchor
 
 An adaptive habit tracker designed for ADHD and neurodivergent brains. Built with React, Supabase, and shadcn/ui.
 
