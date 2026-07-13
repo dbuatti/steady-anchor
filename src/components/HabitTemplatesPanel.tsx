@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { habitTemplates } from '@/lib/habit-templates';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';

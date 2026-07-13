@@ -1,4 +1,3 @@
-"use client";
 
 import { useEffect, useState } from 'react';
 import { useDashboardData } from '@/hooks/useDashboardData';

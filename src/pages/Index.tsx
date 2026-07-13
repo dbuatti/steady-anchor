@@ -6,10 +6,11 @@ import { DayReminder } from '@/components/DayReminder';
 import { HabitLab } from '@/components/HabitLab';
 import { ScreenBreakTimer } from '@/components/ScreenBreakTimer';
 import { NewUserTutorial } from '@/components/NewUserTutorial';
+import { CoachMarks } from '@/components/CoachMarks';
 import { HabitTemplatesPanel } from '@/components/HabitTemplatesPanel';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, LayoutGrid, RefreshCw, ChevronRight, ChevronLeft, Moon, Sparkles, BarChart3, Plus } from "lucide-react";
+import { Loader2, LayoutGrid, RefreshCw, ChevronRight, ChevronLeft, Moon, Sparkles, BarChart3, Plus, Settings } from "lucide-react";
 import { useSession } from '@/contexts/SessionContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -184,9 +185,9 @@ export default function Index() {
         completedCount={completedCount}
       />
 
-      <NewUserTutorial />
+      <CoachMarks />
 
-      <div className="fixed top-10 left-10 z-[100]">
+      <div className="fixed top-10 left-10 z-[100] flex gap-3" data-coach="analytics">
         <Link to="/analytics">
           <Button
             variant="ghost"
@@ -200,9 +201,22 @@ export default function Index() {
             </span>
           </Button>
         </Link>
+        <Link to="/settings">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500 group relative"
+            title="Settings"
+          >
+            <Settings className="w-6 h-6" />
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+              Settings
+            </span>
+          </Button>
+        </Link>
       </div>
 
-      <div className="fixed top-10 right-10 z-[100]">
+      <div className="fixed top-10 right-10 z-[100]" data-coach="screentimer">
         <ScreenBreakTimer />
       </div>
 
@@ -246,6 +260,7 @@ export default function Index() {
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
         dragMomentum={false}
+        data-coach="task-area"
       >
         <div className={cn(
           "w-screen h-full overflow-y-auto transition-opacity duration-700",
@@ -295,7 +310,7 @@ export default function Index() {
                         onClick={shuffleTask} 
                         variant="ghost" 
                         size="icon"
-                        className="w-10 h-10 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-all active:rotate-180 duration-500"
+                        className="w-11 h-11 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-all active:rotate-180 duration-500"
                         title="Shuffle Task"
                       >
                         <RefreshCw className="w-5 h-5" />

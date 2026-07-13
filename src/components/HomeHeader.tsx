@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import { Clock, User, Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -27,7 +26,7 @@ const getGreeting = (firstName: string | null, lastName: string | null) => {
   return fullName ? `${greeting}, ${fullName}` : greeting;
 };
 
-const HomeHeader: React.FC<HomeHeaderProps> = ({ 
+const HomeHeader = ({ 
   lastActiveText, 
   firstName, 
   lastName
