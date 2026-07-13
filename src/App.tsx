@@ -67,7 +67,7 @@ const AppRoutes = () => (
       <Route path="/templates" element={<ProtectedRoute><Layout><TemplatesPage /></Layout></ProtectedRoute>} />
       <Route path="/create-habit" element={<ProtectedRoute><Layout><HabitWizard /></Layout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
-      <Route path="/help" element={<ProtectedRoute><Layout><HelpPage /></Layout></ProtectedRoute>} />
+      <Route path="/help" element={<HelpPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </Suspense>

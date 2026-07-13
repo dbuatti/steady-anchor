@@ -4,41 +4,103 @@
 
 @layer base {
   :root {
-    /* Vibrant Orange Background */
-    --background: 25 95% 60%; 
+    /* Deep Teal Background — calming, oceanic, anchor vibes */
+    --background: 187 65% 17%;
     --foreground: 0 0% 100%;
 
-    /* Surfaces use translucent white for a clean 'glass' effect */
     --card: 0 0% 100% / 0.1;
     --card-foreground: 0 0% 100%;
 
-    --popover: 25 95% 55%;
+    --popover: 187 65% 22%;
     --popover-foreground: 0 0% 100%;
 
-    /* Primary is pure White */
-    --primary: 0 0% 100%; 
-    --primary-foreground: 25 95% 60%;
+    /* Primary: Warm Gold accent */
+    --primary: 43 85% 58%;
+    --primary-foreground: 187 65% 12%;
 
-    --secondary: 0 0% 100% / 0.2; 
+    --secondary: 0 0% 100% / 0.2;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 100% / 0.15;
-    --muted-foreground: 0 0% 100% / 0.8;
+    --muted-foreground: 0 0% 100% / 0.75;
 
-    --accent: 0 0% 100% / 0.25; 
+    --accent: 0 0% 100% / 0.25;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 100% 30%;
+    --destructive: 0 85% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 70% 45%; 
+    --success: 142 65% 40%;
     --success-foreground: 0 0% 100%;
+    --success-background: 142 65% 40% / 0.15;
+    --success-border: 142 65% 40% / 0.3;
+
+    --info: 200 85% 55%;
+    --info-foreground: 0 0% 100%;
+    --info-background: 200 85% 55% / 0.15;
+    --info-border: 200 85% 55% / 0.3;
+
+    --warning: 35 90% 55%;
+    --warning-foreground: 0 0% 100%;
+    --warning-background: 35 90% 55% / 0.15;
+    --warning-border: 35 90% 55% / 0.3;
 
     --border: 0 0% 100% / 0.2;
     --input: 0 0% 100% / 0.2;
-    --ring: 0 0% 100%;
+    --ring: 43 85% 58%;
 
-    --radius: 2.5rem; 
+    --radius: 2.5rem;
+
+    /* Habit category colors */
+    --habit-green: 142 65% 40%;
+    --habit-green-foreground: 0 0% 100%;
+    --habit-green-border: 142 65% 40% / 0.3;
+
+    --habit-purple: 270 65% 55%;
+    --habit-purple-foreground: 0 0% 100%;
+    --habit-purple-border: 270 65% 55% / 0.3;
+
+    --habit-orange: 25 85% 52%;
+    --habit-orange-foreground: 0 0% 100%;
+    --habit-orange-border: 25 85% 52% / 0.3;
+
+    --habit-blue: 200 85% 52%;
+    --habit-blue-foreground: 0 0% 100%;
+    --habit-blue-border: 200 85% 52% / 0.3;
+
+    --habit-red: 0 80% 50%;
+    --habit-red-foreground: 0 0% 100%;
+    --habit-red-border: 0 80% 50% / 0.3;
+
+    --habit-indigo: 230 75% 55%;
+    --habit-indigo-foreground: 0 0% 100%;
+    --habit-indigo-border: 230 75% 55% / 0.3;
+
+    /* Landing page colors (light marketing page) */
+    --landing-background: 0 0% 100%;
+    --landing-foreground: 187 65% 12%;
+    --landing-muted-foreground: 187 20% 45%;
+    --landing-primary: 43 85% 58%;
+    --landing-primary-foreground: 0 0% 100%;
+    --landing-accent: 187 10% 96%;
+    --landing-accent-foreground: 187 65% 12%;
+    --landing-border: 187 10% 90%;
+    --landing-indigo: 230 75% 55%;
+    --landing-purple: 270 65% 55%;
+    --landing-green: 142 65% 40%;
+    --landing-orange: 25 85% 52%;
+    --landing-yellow: 43 85% 58%;
+    --landing-red: 0 80% 50%;
+
+    /* Sidebar colors */
+    --sidebar-background: 187 65% 12%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 43 85% 58%;
+    --sidebar-primary-foreground: 187 65% 12%;
+    --sidebar-accent: 0 0% 100% / 0.1;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100% / 0.15;
+    --sidebar-ring: 43 85% 58%;
   }
 }
 
@@ -50,7 +112,6 @@
   html, body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
-    /* Prevent pull-to-refresh and bounce effects that break custom swipes */
     overscroll-behavior-y: none;
     height: 100%;
     overflow: hidden;
