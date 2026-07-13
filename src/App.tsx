@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 // Eagerly load only the most-visited pages
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import LandingPage from "./pages/LandingPage";
 
 // Lazy-load everything else
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -47,12 +48,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const HomeRoute = () => {
+  const { session, loading } = useSession();
+  if (loading) return <PageLoader />;
+  if (!session) return <LandingPage />;
+  return <Layout><Index /></Layout>;
+};
+
 const AppRoutes = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding onComplete={() => window.location.href = "/"} /></ProtectedRoute>} />
-      <Route path="/" element={<ProtectedRoute><Layout><Index /></Layout></ProtectedRoute>} />
+      <Route path="/" element={<HomeRoute />} />
       <Route path="/journey" element={<ProtectedRoute><Layout><Journey /></Layout></ProtectedRoute>} />
       <Route path="/history" element={<ProtectedRoute><Layout><History /></Layout></ProtectedRoute>} />
       <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
