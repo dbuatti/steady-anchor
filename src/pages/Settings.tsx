@@ -39,7 +39,7 @@ const Settings = () => {
   const { data: dashboardData } = useDashboardData();
   const queryClient = useQueryClient();
   const { mutate: updateProfile, isPending: isUpdatingProfile } = useUpdateProfile();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, colorTheme, setColorTheme } = useTheme();
   
   const [activeHabitId, setActiveHabitId] = useState<string | null>(null);
   const [showNewHabitModal, setShowNewHabitModal] = useState(false);
@@ -214,7 +214,7 @@ const Settings = () => {
         </Card>
 
         <Card className="rounded-3xl shadow-sm border border-border bg-card">
-          <CardContent className="p-5">
+          <CardContent className="p-5 space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-primary/10 rounded-xl p-2.5">{theme === 'dark' ? <Moon className="w-5 h-5 text-primary" /> : theme === 'light' ? <Sun className="w-5 h-5 text-primary" /> : <Monitor className="w-5 h-5 text-primary" />}</div>
@@ -224,6 +224,37 @@ const Settings = () => {
                 <Button variant={theme === 'light' ? 'default' : 'ghost'} size="sm" className="rounded-xl h-9 w-9 p-0" onClick={() => setTheme('light')}><Sun className="w-4 h-4" /></Button>
                 <Button variant={theme === 'dark' ? 'default' : 'ghost'} size="sm" className="rounded-xl h-9 w-9 p-0" onClick={() => setTheme('dark')}><Moon className="w-4 h-4" /></Button>
                 <Button variant={theme === 'system' ? 'default' : 'ghost'} size="sm" className="rounded-xl h-9 w-9 p-0" onClick={() => setTheme('system')}><Monitor className="w-4 h-4" /></Button>
+              </div>
+            </div>
+            <div className="border-t border-border pt-4">
+              <p className="font-black uppercase text-[10px] tracking-tight mb-3">Color Theme</p>
+              <div className="flex gap-3">
+                {[
+                  { id: 'ocean' as const, label: 'Ocean', colors: 'bg-teal-700 border-gold-400' },
+                  { id: 'midnight' as const, label: 'Midnight', colors: 'bg-blue-900 border-cyan-400' },
+                  { id: 'forest' as const, label: 'Forest', colors: 'bg-emerald-900 border-amber-400' },
+                  { id: 'royal' as const, label: 'Royal', colors: 'bg-purple-900 border-slate-200' },
+                  { id: 'mist' as const, label: 'Mist', colors: 'bg-slate-700 border-rose-400' },
+                ].map((ct) => (
+                  <button
+                    key={ct.id}
+                    onClick={() => setColorTheme(ct.id)}
+                    className={`flex-1 flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all ${
+                      colorTheme === ct.id ? 'ring-2 ring-primary bg-primary/10' : 'hover:bg-white/5'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full ${ct.id === colorTheme ? 'ring-2 ring-white' : ''}`}
+                      style={{
+                        background: ct.id === 'ocean' ? 'linear-gradient(135deg, #0d5559, #c9a13b)' :
+                                   ct.id === 'midnight' ? 'linear-gradient(135deg, #0c1a3b, #4ec9d9)' :
+                                   ct.id === 'forest' ? 'linear-gradient(135deg, #122b1e, #d4a33d)' :
+                                   ct.id === 'royal' ? 'linear-gradient(135deg, #1c1530, #ebebeb)' :
+                                   'linear-gradient(135deg, #2a2f3d, #d95c7a)'
+                      }}
+                    />
+                    <span className="text-[8px] font-bold uppercase tracking-tight">{ct.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </CardContent>
