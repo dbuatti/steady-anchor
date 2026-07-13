@@ -18,7 +18,7 @@ const getDayBoundaries = async (userId: string, dateString: string) => {
 export const fetchDashboardData = async (userId: string) => {
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('journey_start_date, daily_streak, last_active_at, first_name, last_name, timezone, neurodivergent_mode, enable_sound, enable_haptics, day_rollover_hour, custom_habit_order, section_order') 
+    .select('journey_start_date, daily_streak, last_active_at, first_name, last_name, timezone, neurodivergent_mode, enable_sound, enable_haptics, day_rollover_hour, custom_habit_order') 
     .eq('id', userId)
     .single();
 
@@ -171,15 +171,6 @@ export const fetchDashboardData = async (userId: string) => {
     });
   }
 
-  const dailyMomentumHabits = processedHabits.filter(h => {
-    if (h.category === 'anchor' && h.frequency_per_week === 1) return false; 
-    if ((h as any).is_weekly_goal) return false; 
-    if (!h.is_visible || !h.isScheduledForToday || h.isLockedByDependency) return false;
-    return true;
-  });
-  
-  const dailyMomentumParts = calculateDailyParts(dailyMomentumHabits, profile?.neurodivergent_mode || false);
-
   const calculateTotals = (tasks: any[]) => {
     const totals = { pushups: 0, meditation: 0 };
     tasks.forEach(t => {
@@ -214,10 +205,8 @@ export const fetchDashboardData = async (userId: string) => {
     lastName: profile?.last_name || null,
     tip: randomTip || null, 
     averageDailyTasks: totalSessions && totalDaysSinceStart > 0 ? (totalSessions / totalDaysSinceStart).toFixed(1) : '0.0',
-    dailyMomentumParts,
     dayRolloverHour: profile?.day_rollover_hour || 0,
     customHabitOrder: profile?.custom_habit_order || [],
-    sectionOrder: profile?.section_order || ['anchor', 'weekly_objective', 'daily_momentum'], 
     timezone: timezone,
   };
 };

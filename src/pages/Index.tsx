@@ -192,26 +192,20 @@ export default function Index() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500 group relative"
+            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500"
             title="View Analytics"
           >
             <BarChart3 className="w-6 h-6" />
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-              Analytics
-            </span>
           </Button>
         </Link>
         <Link to="/settings">
           <Button
             variant="ghost"
             size="icon"
-            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500 group relative"
+            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500"
             title="Settings"
           >
             <Settings className="w-6 h-6" />
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-              Settings
-            </span>
           </Button>
         </Link>
       </div>
@@ -221,7 +215,7 @@ export default function Index() {
       </div>
 
       {/* Floating Add Habit Button */}
-      <Link to="/create-habit">
+      <Link to="/create-habit" data-coach="addhabit">
         <Button
           className="fixed bottom-28 right-6 z-[100] h-14 w-14 rounded-full shadow-2xl"
           size="icon"

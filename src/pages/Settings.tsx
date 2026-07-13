@@ -28,7 +28,6 @@ import { ResetEverythingCard } from '@/components/settings/ResetEverythingCard';
 import { ResetExperienceCard } from '@/components/settings/ResetExperienceCard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { HabitOrderSettings } from '@/components/settings/HabitOrderSettings';
-import { SectionOrderSettings } from '@/components/settings/SectionOrderSettings';
 import { commonTimezones } from '@/utils/time-utils';
 import { ExportDataCard } from '@/components/settings/ExportDataCard';
 
@@ -268,7 +267,6 @@ const Settings = () => {
         </Card>
       </div>
 
-      <SectionOrderSettings />
       <HabitOrderSettings />
 
       <div className="space-y-10">

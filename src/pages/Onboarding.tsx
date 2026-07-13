@@ -15,7 +15,8 @@ import { habitTemplates, habitCategories } from '@/lib/habit-templates';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { commonTimezones, timeOptions } from '@/utils/time-utils'; // Import from new utility
+import { commonTimezones, timeOptions } from '@/utils/time-utils';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
   const [step, setStep] = useState(1);
@@ -34,12 +35,14 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
   const [sessionDurationPreference, setSessionDurationPreference] = useState<'short' | 'medium' | 'long'>('medium'); // Short/Medium/Long
   const [weeklyFrequencyPreference, setWeeklyFrequencyPreference] = useState(4); // Slider 1-7
   const [allowChunks, setAllowChunks] = useState(true); // Yes/No for auto-chunking
+  const [selectedColorTheme, setSelectedColorTheme] = useState('ocean');
 
   const { mutateAsync: updateProfile } = useUpdateProfile();
+  const { setColorTheme } = useTheme();
   const { mutateAsync: initializeHabits } = useInitializeMissingHabits();
 
   const handleNext = () => {
-    if (step < 6) setStep(step + 1);
+    if (step < 7) setStep(step + 1);
     else handleComplete();
   };
 
@@ -83,6 +86,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
       });
 
       showSuccess('Welcome! Your profile and initial habits have been set up.');
+      setColorTheme(selectedColorTheme as any);
       onComplete(); // Call onComplete after all async operations
     } catch (error) {
       showError('Failed to complete onboarding. Please try again.');
@@ -142,6 +146,45 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
           <div className="space-y-6">
             <div className="text-center">
               <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <div className="w-8 h-8 rounded-full" style={{ background: 'linear-gradient(135deg, #0d5559, #c9a13b)' }} />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Choose Your Theme</h2>
+              <p className="text-muted-foreground">Pick a color scheme that feels right to you.</p>
+            </div>
+            <div className="grid grid-cols-5 gap-3">
+              {[
+                { id: 'ocean', label: 'Ocean', gradient: 'linear-gradient(135deg, #0d5559, #c9a13b)' },
+                { id: 'midnight', label: 'Midnight', gradient: 'linear-gradient(135deg, #0c1a3b, #4ec9d9)' },
+                { id: 'forest', label: 'Forest', gradient: 'linear-gradient(135deg, #122b1e, #d4a33d)' },
+                { id: 'royal', label: 'Royal', gradient: 'linear-gradient(135deg, #1c1530, #ebebeb)' },
+                { id: 'mist', label: 'Mist', gradient: 'linear-gradient(135deg, #2a2f3d, #d95c7a)' },
+              ].map((ct) => (
+                <button
+                  key={ct.id}
+                  onClick={() => setSelectedColorTheme(ct.id)}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                    selectedColorTheme === ct.id ? 'ring-2 ring-primary bg-primary/10' : 'hover:bg-white/5'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-full ${selectedColorTheme === ct.id ? 'ring-2 ring-white' : ''}`}
+                    style={{ background: ct.gradient }}
+                  />
+                  <span className="text-[10px] font-bold uppercase tracking-tight">{ct.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="p-4 bg-muted/50 rounded-2xl border border-primary/10">
+              <p className="text-xs text-muted-foreground leading-relaxed text-center">
+                Your theme is applied instantly. You can change it anytime in Settings.
+              </p>
+            </div>
+          </div>
+        );
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Clock className="w-8 h-8 text-primary" />
               </div>
               <h2 className="text-2xl font-bold mb-2">Time Preferences</h2>
@@ -178,7 +221,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
             </div>
           </div>
         );
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -227,7 +270,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
             </div>
           </div>
         );
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -256,7 +299,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
             </div>
           </div>
         );
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -346,7 +389,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
             </div>
           </div>
         );
-      case 6:
+      case 7:
         return (
           <div className="space-y-6 text-center">
             <div className="mx-auto w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
@@ -362,7 +405,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
     }
   };
 
-  const progress = (step / 6) * 100;
+  const progress = (step / 7) * 100;
 
   const isNextDisabled = useMemo(() => {
     if (step === 1 && (!firstName.trim() || !lastName.trim())) return true;
@@ -375,7 +418,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
       <Card className="w-full max-w-4xl shadow-xl rounded-3xl overflow-hidden border-0">
         <CardHeader className="pb-0">
           <div className="flex justify-between items-center mb-4">
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 6</div>
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Step {step} of 7</div>
             <div className="text-xs font-bold text-primary">{Math.round(progress)}%</div>
           </div>
           <div className="w-full bg-secondary rounded-full h-1.5"><div className="bg-primary h-1.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div></div>
@@ -385,7 +428,7 @@ const OnboardingFlow = ({ onComplete }: { onComplete: () => void }) => {
           <div className="flex justify-between mt-8 gap-4">
             <Button variant="ghost" onClick={handleBack} disabled={step === 1} className="rounded-2xl px-8">Back</Button>
             <Button onClick={handleNext} disabled={isNextDisabled} className="flex-1 rounded-2xl h-12 text-base font-bold">
-              {step === 6 ? 'Enter Growth Coach' : 'Next'}
+              {step === 7 ? 'Enter Growth Coach' : 'Next'}
             </Button>
           </div>
         </CardContent>
