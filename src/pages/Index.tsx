@@ -252,11 +252,6 @@ export default function Index() {
         dragDirectionLock
         dragConstraints={{ left: -windowWidth * 2, right: 0 }}
         dragElastic={0.2}
-        onDragStart={(event) => {
-          if ((event as any).target?.closest?.('[data-no-drag]')) {
-            controls.set({ x: getXOffset() });
-          }
-        }}
         onDragEnd={handleDragEnd}
         dragMomentum={false}
         data-coach="task-area"

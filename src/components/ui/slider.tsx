@@ -12,12 +12,22 @@ const Slider = React.forwardRef<
   React.useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const stop = (e: Event) => e.stopPropagation();
-    el.addEventListener('pointerdown', stop);
-    el.addEventListener('touchstart', stop);
+
+    const dragHandle = el.closest('[data-coach="task-area"]');
+    if (!dragHandle) return;
+
+    const stop = (e: PointerEvent | TouchEvent) => {
+      if (el.contains(e.target as Node)) {
+        e.stopImmediatePropagation();
+      }
+    };
+
+    dragHandle.addEventListener('pointerdown', stop);
+    dragHandle.addEventListener('touchstart', stop);
+
     return () => {
-      el.removeEventListener('pointerdown', stop);
-      el.removeEventListener('touchstart', stop);
+      dragHandle.removeEventListener('pointerdown', stop);
+      dragHandle.removeEventListener('touchstart', stop);
     };
   }, []);
 
@@ -28,7 +38,6 @@ const Slider = React.forwardRef<
         if (typeof ref === 'function') ref(node);
         else if (ref) (ref as React.MutableRefObject<HTMLSpanElement | null>).current = node;
       }}
-      data-no-drag
       className={cn(
         "relative flex w-full touch-none select-none items-center",
         className,
