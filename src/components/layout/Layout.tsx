@@ -2,6 +2,7 @@
 import React from 'react';
 import { useTabProgress } from '@/hooks/useTabProgress';
 import { FloatingTimer } from './FloatingTimer';
+import { BottomNav } from './BottomNav';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,10 +15,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Main content area - Enabled vertical scrolling for standard pages */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pb-16">
         {children}
       </main>
       <FloatingTimer />
+      <BottomNav />
     </div>
   );
 };

@@ -5,16 +5,13 @@ import { SimpleTaskRow } from '@/components/SimpleTaskRow';
 import { DayReminder } from '@/components/DayReminder';
 import { HabitLab } from '@/components/HabitLab';
 import { ScreenBreakTimer } from '@/components/ScreenBreakTimer';
-import { NewUserTutorial } from '@/components/NewUserTutorial';
 import { CoachMarks } from '@/components/CoachMarks';
 import { HabitTemplatesPanel } from '@/components/HabitTemplatesPanel';
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Loader2, LayoutGrid, RefreshCw, ChevronRight, ChevronLeft, Moon, Sparkles, BarChart3, Plus, Settings } from "lucide-react";
+import { Loader2, RefreshCw, Moon, Sparkles, Plus } from "lucide-react";
 import { useSession } from '@/contexts/SessionContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { motion, useAnimation, PanInfo, AnimatePresence } from 'framer-motion';
+import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { isSameDay } from 'date-fns';
 import { RewardCeremony } from '@/components/dashboard/RewardCeremony';
@@ -24,11 +21,12 @@ export default function Index() {
   const { tasks, loading: tasksLoading, skipTask, completeTask } = useSimpleTasks();
   const [isOverrideMode, setIsOverrideMode] = useState(false);
   const [randomTask, setRandomTask] = useState<SimpleTask | null>(null);
-  const [view, setView] = useState<'lab' | 'task' | 'day'>('task');
   const [showCeremony, setShowCeremony] = useState(false);
   const navigate = useNavigate();
   const controls = useAnimation();
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 390);
+  const [searchParams] = useSearchParams();
+  const view = (searchParams.get('view') as 'lab' | 'task' | 'day') || 'task';
 
   const prevIsAllDone = useRef(false);
 
@@ -144,20 +142,6 @@ export default function Index() {
     });
   }, [view, windowWidth, controls]);
 
-  const handleDragEnd = (event: any, info: PanInfo) => {
-    const threshold = windowWidth * 0.15;
-    const velocityThreshold = 500;
-    const { offset, velocity } = info;
-
-    if (offset.x < -threshold || velocity.x < -velocityThreshold) {
-      if (view === 'lab') setView('task');
-      else if (view === 'task') setView('day');
-    } else if (offset.x > threshold || velocity.x > velocityThreshold) {
-      if (view === 'day') setView('task');
-      else if (view === 'task') setView('lab');
-    }
-  };
-
   if (sessionLoading || tasksLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -186,29 +170,6 @@ export default function Index() {
       />
 
       <CoachMarks />
-
-      <div className="fixed top-10 left-10 z-[100] flex gap-3" data-coach="analytics">
-        <Link to="/analytics">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500"
-            title="View Analytics"
-          >
-            <BarChart3 className="w-6 h-6" />
-          </Button>
-        </Link>
-        <Link to="/settings">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-14 w-14 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-2 border-white/10 transition-all duration-500"
-            title="Settings"
-          >
-            <Settings className="w-6 h-6" />
-          </Button>
-        </Link>
-      </div>
 
       <div className="fixed top-10 right-10 z-[100]" data-coach="screentimer">
         <ScreenBreakTimer />
@@ -248,12 +209,6 @@ export default function Index() {
         className="flex w-[300%] h-full relative z-10"
         animate={controls}
         initial={{ x: getXOffset() }}
-        drag="x"
-        dragDirectionLock
-        dragConstraints={{ left: -windowWidth * 2, right: 0 }}
-        dragElastic={0.2}
-        onDragEnd={handleDragEnd}
-        dragMomentum={false}
         data-coach="task-area"
       >
         <div className={cn(
@@ -264,7 +219,7 @@ export default function Index() {
         </div>
 
         <div className="w-screen h-full relative overflow-hidden">          
-          <div className="h-full overflow-y-auto pb-48">
+          <div className="h-full overflow-y-auto pb-8">
             <div className={cn(
               "container max-w-2xl pt-20 px-8 space-y-10 transition-all duration-1000",
               isAllDone ? "opacity-10 scale-95 grayscale" : isCentralDone ? "opacity-100 scale-100" : "opacity-100"
@@ -298,17 +253,25 @@ export default function Index() {
 
               {!isCentralDone && (
                 <>
-                  {!isOverrideMode && eligibleTasks.length > 1 && (
-                    <div className="flex justify-center animate-in fade-in slide-in-from-top-4 duration-700">
-                      <Button 
-                        onClick={shuffleTask} 
-                        variant="ghost" 
-                        size="icon"
-                        className="w-11 h-11 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-all active:rotate-180 duration-500"
-                        title="Shuffle Task"
+                  {eligibleTasks.length > 1 && (
+                    <div className="flex justify-center items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
+                      {!isOverrideMode && (
+                        <Button 
+                          onClick={shuffleTask} 
+                          variant="ghost" 
+                          size="icon"
+                          className="w-11 h-11 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-all active:rotate-180 duration-500"
+                          title="Shuffle Task"
+                        >
+                          <RefreshCw className="w-5 h-5" />
+                        </Button>
+                      )}
+                      <button
+                        onClick={() => setIsOverrideMode(!isOverrideMode)}
+                        className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-all active:scale-95"
                       >
-                        <RefreshCw className="w-5 h-5" />
-                      </Button>
+                        {isOverrideMode ? 'Random' : 'Show all'}
+                      </button>
                     </div>
                   )}
 
@@ -350,16 +313,6 @@ export default function Index() {
                 </div>
               )}
 
-              <div className="flex justify-between items-center px-4 pt-8 opacity-20">
-                <div className="flex items-center gap-1">
-                  <ChevronLeft className="w-3 h-3 text-white" />
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">Lab</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">Day</span>
-                  <ChevronRight className="w-3 h-3 text-white" />
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -371,35 +324,6 @@ export default function Index() {
           <DayReminder />
         </div>
       </motion.div>
-
-      <div className={cn(
-        "fixed bottom-10 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] max-w-md z-50 transition-all duration-1000",
-        isAllDone ? "opacity-20 translate-y-4 grayscale" : "opacity-100"
-      )}>
-        <div className="bg-white/20 backdrop-blur-3xl p-5 rounded-[2.5rem] flex items-center justify-between shadow-2xl border border-white/20">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-white/20">
-              {isAllDone ? <Sparkles className="w-6 h-6 text-white" /> : <LayoutGrid className="w-6 h-6 text-white" />}
-            </div>
-            <div className="flex flex-col">
-              <Label htmlFor="override-mode" className="text-sm font-black uppercase tracking-widest text-white">
-                {isAllDone ? "Day Complete" : "Show All"}
-              </Label>
-              <p className="text-[10px] font-bold text-white/60 uppercase">
-                {isAllDone ? "Rest well" : "Override random"}
-              </p>
-            </div>
-          </div>
-          {!isAllDone && (
-            <Switch 
-              id="override-mode" 
-              checked={isOverrideMode} 
-              onCheckedChange={setIsOverrideMode}
-              className="data-[state=checked]:bg-white data-[state=unchecked]:bg-white/20 scale-125"
-            />
-          )}
-        </div>
-      </div>
     </div>
   );
 }
