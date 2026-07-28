@@ -11,7 +11,7 @@ import { Loader2, RefreshCw, Moon, Sparkles, Plus } from "lucide-react";
 import { useSession } from '@/contexts/SessionContext';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { isSameDay } from 'date-fns';
 import { RewardCeremony } from '@/components/dashboard/RewardCeremony';
@@ -23,18 +23,10 @@ export default function Index() {
   const [randomTask, setRandomTask] = useState<SimpleTask | null>(null);
   const [showCeremony, setShowCeremony] = useState(false);
   const navigate = useNavigate();
-  const controls = useAnimation();
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 390);
   const [searchParams] = useSearchParams();
   const view = (searchParams.get('view') as 'lab' | 'task' | 'day') || 'task';
 
   const prevIsAllDone = useRef(false);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     if (!sessionLoading && !session) {
@@ -128,20 +120,6 @@ export default function Index() {
     }
   }, [eligibleTasks]);
 
-  const getXOffset = () => {
-    if (view === 'lab') return 0;
-    if (view === 'task') return -windowWidth;
-    if (view === 'day') return -windowWidth * 2;
-    return -windowWidth;
-  };
-
-  useEffect(() => {
-    controls.start({ 
-      x: getXOffset(),
-      transition: { type: "spring", stiffness: 300, damping: 35 }
-    });
-  }, [view, windowWidth, controls]);
-
   if (sessionLoading || tasksLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -178,7 +156,7 @@ export default function Index() {
       {/* Floating Add Habit Button */}
       <Link to="/create-habit" data-coach="addhabit">
         <Button
-          className="fixed bottom-28 right-6 z-[100] h-14 w-14 rounded-full shadow-2xl"
+          className="fixed bottom-24 right-6 z-[100] h-14 w-14 rounded-full shadow-2xl"
           size="icon"
           title="Add Habit"
         >
@@ -205,125 +183,140 @@ export default function Index() {
         )}
       </AnimatePresence>
 
-      <motion.div 
-        className="flex w-[300%] h-full relative z-10"
-        animate={controls}
-        initial={{ x: getXOffset() }}
-        data-coach="task-area"
-      >
-        <div className={cn(
-          "w-screen h-full overflow-y-auto transition-opacity duration-700",
-          isAllDone ? "opacity-20" : "opacity-100"
-        )}>
-          <HabitLab />
-        </div>
+      <div className="h-full relative z-10" data-coach="task-area">
+        <AnimatePresence mode="wait">
+          {view === 'lab' && (
+            <motion.div
+              key="lab"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={cn("h-full overflow-y-auto", isAllDone && "opacity-20")}
+            >
+              <HabitLab />
+            </motion.div>
+          )}
 
-        <div className="w-screen h-full relative overflow-hidden">          
-          <div className="h-full overflow-y-auto pb-8">
-            <div className={cn(
-              "container max-w-2xl pt-20 px-8 space-y-10 transition-all duration-1000",
-              isAllDone ? "opacity-10 scale-95 grayscale" : isCentralDone ? "opacity-100 scale-100" : "opacity-100"
-            )}>
-              
-              {isCentralDone && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                  <div className="text-center space-y-2">
-                    <div className="mx-auto w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
-                      {isAllDone ? <Sparkles className="w-8 h-8 text-white/60" /> : <Moon className="w-8 h-8 text-white/40" />}
-                    </div>
-                    <h3 className="text-3xl font-black text-white/40 uppercase italic tracking-tighter">
-                      {isAllDone ? "Journey Harmonized" : "Central Tasks Done"}
-                    </h3>
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
-                      {isAllDone ? "Everything complete" : "Quick log remaining tasks"}
-                    </p>
-                  </div>
-                  
-                  <div className="grid gap-3 max-w-md mx-auto">
-                    {[...eligibleTasks, ...labTasks].map(task => (
-                      <SimpleTaskRow 
-                        key={task.id} 
-                        task={task} 
-                        onComplete={handleComplete} 
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+          {view === 'task' && (
+            <motion.div
+              key="task"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full relative overflow-hidden"
+            >
+              <div className="h-full overflow-y-auto pb-[calc(64px+env(safe-area-inset-bottom,0px))]">
+                <div className={cn(
+                  "container max-w-2xl pt-20 px-8 space-y-10 transition-all duration-1000",
+                  isAllDone ? "opacity-10 scale-95 grayscale" : isCentralDone ? "opacity-100 scale-100" : "opacity-100"
+                )}>
 
-              {!isCentralDone && (
-                <>
-                  {eligibleTasks.length > 1 && (
-                    <div className="flex justify-center items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
-                      {!isOverrideMode && (
-                        <Button 
-                          onClick={shuffleTask} 
-                          variant="ghost" 
-                          size="icon"
-                          className="w-11 h-11 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-all active:rotate-180 duration-500"
-                          title="Shuffle Task"
-                        >
-                          <RefreshCw className="w-5 h-5" />
-                        </Button>
-                      )}
-                      <button
-                        onClick={() => setIsOverrideMode(!isOverrideMode)}
-                        className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-all active:scale-95"
-                      >
-                        {isOverrideMode ? 'Random' : 'Show all'}
-                      </button>
-                    </div>
-                  )}
+                  {isCentralDone && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                      <div className="text-center space-y-2">
+                        <div className="mx-auto w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
+                          {isAllDone ? <Sparkles className="w-8 h-8 text-white/60" /> : <Moon className="w-8 h-8 text-white/40" />}
+                        </div>
+                        <h3 className="text-3xl font-black text-white/40 uppercase italic tracking-tighter">
+                          {isAllDone ? "Journey Harmonized" : "Central Tasks Done"}
+                        </h3>
+                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
+                          {isAllDone ? "Everything complete" : "Quick log remaining tasks"}
+                        </p>
+                      </div>
 
-                  <div className="space-y-12">
-                    {isOverrideMode ? (
-                      <div className="grid gap-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                        {eligibleTasks.map(task => (
-                          <SimpleTaskCard 
+                      <div className="grid gap-3 max-w-md mx-auto">
+                        {[...eligibleTasks, ...labTasks].map(task => (
+                          <SimpleTaskRow 
                             key={task.id} 
                             task={task} 
                             onComplete={handleComplete} 
                           />
                         ))}
                       </div>
-                    ) : (
-                      randomTask && (
-                        <div className="animate-in zoom-in-95 duration-500">
-                          <SimpleTaskCard 
-                            task={randomTask} 
-                            onComplete={handleComplete} 
-                            onShuffle={() => handleSkip(randomTask.id)}
-                            showShuffle={true}
-                          />
+                    </div>
+                  )}
+
+                  {!isCentralDone && (
+                    <>
+                      {eligibleTasks.length > 1 && (
+                        <div className="flex justify-center items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
+                          {!isOverrideMode && (
+                            <Button 
+                              onClick={shuffleTask} 
+                              variant="ghost" 
+                              size="icon"
+                              className="w-11 h-11 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-all active:rotate-180 duration-500"
+                              title="Shuffle Task"
+                            >
+                              <RefreshCw className="w-5 h-5" />
+                            </Button>
+                          )}
+                          <button
+                            onClick={() => setIsOverrideMode(!isOverrideMode)}
+                            className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-all active:scale-95"
+                          >
+                            {isOverrideMode ? 'Random' : 'Show all'}
+                          </button>
                         </div>
-                      )
-                    )}
-                  </div>
-                </>
-              )}
+                      )}
 
-              {/* Templates Quick-Add Panel — shown when user has few habits */}
-              {eligibleTasks.length < 3 && !isCentralDone && !isOverrideMode && (
-                <div className="pt-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                  <HabitTemplatesPanel
-                    onAddHabit={(data) => {
-                      navigate('/create-habit', { state: { templateToPreFill: data } });
-                    }}
-                  />
+                      <div className="space-y-12">
+                        {isOverrideMode ? (
+                          <div className="grid gap-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                            {eligibleTasks.map(task => (
+                              <SimpleTaskCard 
+                                key={task.id} 
+                                task={task} 
+                                onComplete={handleComplete} 
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          randomTask && (
+                            <div className="animate-in zoom-in-95 duration-500">
+                              <SimpleTaskCard 
+                                task={randomTask} 
+                                onComplete={handleComplete} 
+                                onShuffle={() => handleSkip(randomTask.id)}
+                                showShuffle={true}
+                              />
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Templates Quick-Add Panel — shown when user has few habits */}
+                  {eligibleTasks.length < 3 && !isCentralDone && !isOverrideMode && (
+                    <div className="pt-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                      <HabitTemplatesPanel
+                        onAddHabit={(data) => {
+                          navigate('/create-habit', { state: { templateToPreFill: data } });
+                        }}
+                      />
+                    </div>
+                  )}
+
                 </div>
-              )}
+              </div>
+            </motion.div>
+          )}
 
-            </div>
-          </div>
-        </div>
-
-        <div className={cn(
-          "w-screen h-full overflow-hidden transition-opacity duration-700",
-          isAllDone ? "opacity-10" : "opacity-100"
-        )}>
-          <DayReminder />
-        </div>
-      </motion.div>
+          {view === 'day' && (
+            <motion.div
+              key="day"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={cn("h-full overflow-hidden", isAllDone && "opacity-10")}
+            >
+              <DayReminder />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

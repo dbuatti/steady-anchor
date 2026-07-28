@@ -166,4 +166,8 @@
   .glass-panel {
     @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl;
   }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }

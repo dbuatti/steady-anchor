@@ -17,8 +17,8 @@ export function BottomNav() {
   const activeTab = getActiveTab(location);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-3xl border-t border-white/10 safe-area-inset-bottom">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-3xl border-t border-white/10 pb-[env(safe-area-inset-bottom,0px)]">
+      <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -43,7 +43,7 @@ export function BottomNav() {
                 )} />
               </div>
               <span className={cn(
-                "text-[8px] font-black uppercase tracking-widest transition-all duration-200",
+                "text-[10px] font-black uppercase tracking-widest transition-all duration-200",
                 isActive ? "opacity-100" : "opacity-60"
               )}>
                 {tab.label}

@@ -55,7 +55,7 @@ const TemplatesPage = () => {
   const loadingSkeletons = Array(6).fill(null);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8 pb-24">
+    <div className="w-full max-w-7xl mx-auto px-4 py-8 pb-4">
 
       {/* Hero Section */}
       <div className="text-center space-y-4 mb-10">

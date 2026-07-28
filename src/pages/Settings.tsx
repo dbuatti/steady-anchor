@@ -97,7 +97,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-6 space-y-8 pb-32">
+    <div className="w-full max-w-2xl mx-auto px-4 py-6 space-y-8 pb-4">
       <PageHeader title="Growth Settings" backLink="/" />
       
       <div className="space-y-6">

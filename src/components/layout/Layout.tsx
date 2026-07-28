@@ -15,7 +15,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Main content area - Enabled vertical scrolling for standard pages */}
-      <main className="flex-1 overflow-y-auto pb-16">
+      <main className="flex-1 overflow-y-auto pb-[calc(64px+env(safe-area-inset-bottom,0px))]">
         {children}
       </main>
       <FloatingTimer />
