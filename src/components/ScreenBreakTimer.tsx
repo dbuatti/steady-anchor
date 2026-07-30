@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Square, Loader2, Coffee, Target } from "lucide-react";
 import { cn } from "@/lib/utils";

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -10,17 +10,11 @@ import {
   RotateCcw,
   Compass,
   Loader2,
-  Zap,
   Target,
   Languages,
   BookOpen,
   RefreshCw,
-  ChevronRight,
   Brain,
-  Sparkles,
-  Heart,
-  Trophy,
-  History,
   ArrowUpRight,
   Timer,
   Star
@@ -28,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatTimeDisplay } from "@/utils/time-utils";
 import { audioManager } from "@/utils/audio";
-import { useLabSession, LabStage } from "@/hooks/useLabSession";
+import { useLabSession } from "@/hooks/useLabSession";
 import { useSimpleTasks } from "@/hooks/useSimpleTasks";
 import { useSession } from "@/contexts/SessionContext";
 import confetti from 'canvas-confetti';
