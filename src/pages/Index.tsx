@@ -137,7 +137,7 @@ export default function Index() {
 
   return (
     <div className={cn(
-      "h-screen transition-colors duration-1000 overflow-hidden select-none",
+      "h-dvh transition-colors duration-1000 overflow-hidden select-none",
       isAllDone ? "bg-black" : isCentralDone ? "bg-[#1a0d00]" : "bg-background"
     )}>
       <RewardCeremony 
@@ -207,7 +207,7 @@ export default function Index() {
             >
               <div className="h-full overflow-y-auto pb-[calc(64px+env(safe-area-inset-bottom,0px))]">
                 <div className={cn(
-                  "container max-w-2xl pt-20 px-8 space-y-10 transition-all duration-1000",
+                  "container max-w-2xl pt-12 md:pt-20 space-y-8 md:space-y-10 transition-all duration-1000",
                   isAllDone ? "opacity-10 scale-95 grayscale" : isCentralDone ? "opacity-100 scale-100" : "opacity-100"
                 )}>
 

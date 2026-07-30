@@ -1,40 +1,36 @@
-import { useMemo } from 'react';
-import { format, startOfWeek, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-// Mock data — will be replaced with real data from hooks later
 const mockConsistency = [3, 5, 2, 4, 6, 1, 0];
 
 export function DayReminder() {
   const day = format(new Date(), 'EEE').toUpperCase();
-  const todayIndex = new Date().getDay(); // 0=Sun, 1=Mon...
+  const todayIndex = new Date().getDay();
   const mondayIndex = 1;
 
   const maxVal = Math.max(...mockConsistency, 1);
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-background overflow-hidden select-none p-8">
-      {/* Big Day */}
       <div className={cn(
         "bg-white/10 backdrop-blur-md rounded-[5rem] flex items-center justify-center transition-all duration-700 shadow-2xl border border-white/10",
         "w-[60vw] h-[60vw] max-w-[320px] max-h-[320px]",
-        "landscape:w-full landscape:h-full landscape:max-w-none landscape:max-h-none landscape:rounded-none landscape:bg-transparent"
+        "landscape:w-[40vh] landscape:h-[40vh] landscape:max-w-none landscape:max-h-none"
       )}>
         <h1 className={cn(
           "font-black tracking-tighter text-white leading-none text-center",
           "text-[20vw] sm:text-[8rem]",
-          "landscape:text-[50vh] landscape:tracking-[-0.02em]"
+          "landscape:text-[20vh]"
         )}>
           {day}
         </h1>
       </div>
 
-      {/* Weekly Consistency Chart */}
       <div className="mt-10 w-full max-w-xs">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 text-center mb-5">
-          Overall Consistency
+          Weekly Preview
         </p>
         <div className="flex items-end justify-center gap-2 h-24">
           {DAYS.map((d, i) => {
@@ -63,12 +59,6 @@ export function DayReminder() {
             );
           })}
         </div>
-      </div>
-
-      <div className="mt-8 landscape:hidden opacity-40">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white animate-pulse">
-          Swipe right to return
-        </p>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { SimpleTask } from "@/hooks/useSimpleTasks";
-import { Check, Shuffle, Play, Pause, RotateCcw, Timer, X, Star, Zap } from "lucide-react";
+import { Check, Play, Pause, RotateCcw, Timer, X, Star, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { audioManager } from "@/utils/audio";
@@ -106,7 +106,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
     <div className="w-full max-w-md mx-auto flex flex-col items-center space-y-6 py-4">
       <div className="text-center space-y-4 w-full">
         <div className="flex flex-col items-center gap-1">
-          <h2 className="text-6xl font-black tracking-tighter text-white uppercase italic">{task.name}</h2>
+          <h2 className="text-6xl font-black tracking-tighter text-white uppercase italic break-words max-w-full">{task.name}</h2>
           {isProgressive && (
             <div className="flex items-center gap-2 text-white/80">
               <Star className="w-3 h-3 fill-current" />
@@ -157,12 +157,12 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
           )} />
           <div className="relative flex items-baseline justify-center">
             <span className={cn(
-              "text-[10rem] sm:text-[12rem] font-black text-white tabular-nums transition-all leading-none tracking-tighter",
+              "text-[clamp(3rem,20vw,10rem)] sm:text-[clamp(4rem,15vw,12rem)] font-black text-white tabular-nums transition-all leading-none tracking-tighter",
               !isActive && "text-white/90"
             )}>
               {isTimeTask ? timeLeft : task.current_value}
             </span>
-            <span className="text-3xl sm:text-4xl ml-4 font-black text-white uppercase tracking-tighter opacity-80">
+            <span className="text-xl sm:text-4xl ml-3 sm:ml-4 font-black text-white uppercase tracking-tighter opacity-80">
               {isTimeTask ? 'sec' : 'reps'}
             </span>
           </div>
@@ -195,7 +195,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
           <div className="flex flex-col gap-4">
             <Button 
               onClick={startTimer}
-              className="w-full h-24 text-3xl font-black rounded-[3rem] gap-4 bg-white text-orange-500 shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all"
+              className="w-full h-16 sm:h-24 text-2xl sm:text-3xl font-black rounded-[2rem] sm:rounded-[3rem] gap-4 bg-white text-orange-500 shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all"
             >
               <Timer className="w-10 h-10" />
               START!
@@ -215,7 +215,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
             onClick={handleComplete} 
             disabled={completing || !canComplete}
             className={cn(
-              "w-full h-24 text-3xl font-black rounded-[3rem] gap-4 bg-white text-orange-500 shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all",
+              "w-full h-16 sm:h-24 text-2xl sm:text-3xl font-black rounded-[2rem] sm:rounded-[3rem] gap-4 bg-white text-orange-500 shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all",
               !canComplete && "opacity-30 cursor-not-allowed grayscale"
             )}
           >
