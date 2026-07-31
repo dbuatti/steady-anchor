@@ -92,7 +92,7 @@ const Settings = () => {
   };
 
   const toggleDay = (habitId: string, currentDays: number[], dayIndex: number) => {
-    let newDays = currentDays.includes(dayIndex) ? currentDays.filter(d => d !== dayIndex) : [...currentDays, dayIndex].sort();
+    const newDays = currentDays.includes(dayIndex) ? currentDays.filter(d => d !== dayIndex) : [...currentDays, dayIndex].sort();
     updateHabitField(habitId, { days_of_week: newDays });
   };
 

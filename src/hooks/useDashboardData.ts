@@ -104,7 +104,7 @@ export const fetchDashboardData = async (userId: string) => {
         const start = parse(h.window_start, 'HH:mm', now);
         const end = parse(h.window_end, 'HH:mm', now);
         isWithinWindow = isWithinInterval(now, { start, end }); 
-      } catch (e) {}
+      } catch { /* invalid time format */ }
     }
 
     const weeklyCompletions = weeklySessionCountMap.get(h.habit_key) || 0;

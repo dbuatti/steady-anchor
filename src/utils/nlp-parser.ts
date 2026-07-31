@@ -88,7 +88,7 @@ export function parseHabitInput(text: string): ParsedHabit {
   let confidence = 40;
 
   // 1. Extract action phrase (the core habit name)
-  const actionMatch = text.match(/(?:I want to|I need to|I should|I will|I\'d like to|i want to|i need to)\s+(.+?)(?:\s+(to|for|in|by|so|every|daily|each|before|after|at|during|until|whenever))?$/i)
+  const actionMatch = text.match(/(?:I want to|I need to|I should|I will|I'd like to|i want to|i need to)\s+(.+?)(?:\s+(to|for|in|by|so|every|daily|each|before|after|at|during|until|whenever))?$/i)
     || text.match(/^(?:do|practice|start)\s+(.+)/i)
     || text.match(/^([A-Z][a-z]+(?:\s+[a-z]+){0,4})/);
 
@@ -104,7 +104,7 @@ export function parseHabitInput(text: string): ParsedHabit {
   let unit: 'min' | 'reps' | 'dose' = 'min';
   let measurement_type: 'timer' | 'unit' | 'binary' = 'timer';
   let daily_goal = 0;
-  let multiplier = 1;
+  const multiplier = 1;
 
   for (const pattern of UNIT_PATTERNS) {
     const match = lower.match(pattern.regex);
@@ -255,7 +255,7 @@ export function parseHabitInput(text: string): ParsedHabit {
   };
 
   // 10. Calculate growth parameters based on goal
-  let growth_type: 'fixed' | 'percentage' = unit === 'min' ? 'percentage' : 'fixed';
+  const growth_type: 'fixed' | 'percentage' = unit === 'min' ? 'percentage' : 'fixed';
   let growth_value = unit === 'min' ? 20 : unit === 'reps' ? 2 : 0;
 
   // If there's a long-term goal with a timeframe, adjust growth to match
