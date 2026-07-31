@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { SimpleTask } from "@/hooks/useSimpleTasks";
 import { Check, Play, Pause, RotateCcw, Timer, X, Star, Zap } from "lucide-react";
@@ -103,7 +104,12 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
   const xpGain = getXpGainForTask(task.task_type, task.current_value);
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col items-center space-y-6 py-4">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-md mx-auto flex flex-col items-center space-y-6 py-4"
+    >
       <div className="text-center space-y-4 w-full">
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-6xl font-black tracking-tighter text-white uppercase italic break-words max-w-full">{task.name}</h2>
@@ -146,6 +152,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
         <button 
           onClick={toggleTimer}
           disabled={!isTimeTask || isTimerFinished}
+          aria-label={isTimeTask ? (isActive ? "Pause timer" : hasStarted ? "Resume timer" : "Start timer") : `Current value: ${task.current_value}`}
           className={cn(
             "relative group transition-transform active:scale-90",
             (!isTimeTask || isTimerFinished) && "cursor-default"
@@ -173,6 +180,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
             <Button 
               variant="secondary" 
               size="icon" 
+              aria-label={isActive ? "Pause" : "Resume"}
               className="w-16 h-16 rounded-full shadow-2xl bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md"
               onClick={toggleTimer}
             >
@@ -181,6 +189,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
             <Button 
               variant="outline" 
               size="icon" 
+              aria-label="Reset timer"
               className="w-16 h-16 rounded-full border-4 border-white/20 bg-transparent hover:bg-white/10 text-white backdrop-blur-md"
               onClick={resetTimer}
             >
@@ -235,6 +244,6 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
           </Button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

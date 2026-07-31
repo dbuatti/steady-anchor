@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { X, ArrowRight, Coffee, BarChart3, LayoutGrid, Plus, Eye } from 'lucide-react';
+import { ArrowRight, Coffee, LayoutGrid, Plus } from 'lucide-react';
 
 interface CoachStep {
   selector: string;
@@ -15,13 +15,6 @@ const COACH_KEY = 'steady-anchor-coach-seen';
 
 const steps: CoachStep[] = [
   {
-    selector: '[data-coach="analytics"]',
-    title: 'Your Progress',
-    body: 'This button opens your analytics dashboard. Track streaks, consistency, and habit growth over time.',
-    icon: <BarChart3 className="w-5 h-5" />,
-    placement: 'right',
-  },
-  {
     selector: '[data-coach="screentimer"]',
     title: 'Screen Break Timer',
     body: 'Tap the coffee icon to start a timer. Use this to train yourself to put your phone down, reset your focus, and take a healthy break.',
@@ -30,16 +23,9 @@ const steps: CoachStep[] = [
   },
   {
     selector: '[data-coach="task-area"]',
-    title: 'Swipe to Navigate',
-    body: 'Swipe left or right here to move between your Lab, daily Tasks, and Day view. Each screen serves a different purpose.',
+    title: 'Navigate the App',
+    body: 'Use the tabs at the bottom to switch between Lab, daily Tasks, Day view, Analytics, and Settings.',
     icon: <LayoutGrid className="w-5 h-5" />,
-    placement: 'bottom',
-  },
-  {
-    selector: '[data-coach="showall"]',
-    title: 'Show All Tasks',
-    body: 'Toggle this switch to see all your tasks at once instead of one at a time. Useful for getting an overview of your day.',
-    icon: <Eye className="w-5 h-5" />,
     placement: 'top',
   },
   {

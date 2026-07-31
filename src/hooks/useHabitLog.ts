@@ -171,8 +171,8 @@ const logHabit = async ({ userId, habitKey, value, taskName, difficultyRating, n
   let newDailyGoal = userHabitData.current_daily_goal;
   let newFrequency = userHabitData.frequency_per_week;
   let newGrowthPhase = userHabitData.growth_phase;
-  let newHabitXp = (userHabitData.habit_xp || 0) + habitXpEarned;
-  let newHabitLevel = calculateHabitLevel(newHabitXp);
+  const newHabitXp = (userHabitData.habit_xp || 0) + habitXpEarned;
+  const newHabitLevel = calculateHabitLevel(newHabitXp);
 
   if (isGoalMetAfterLog) {
     const todayDateString = getTodayDateString(timezone);
@@ -237,7 +237,7 @@ const unlogHabit = async ({ userId, completedTaskId }: { userId: string, complet
   }
 
   const xpPerUnit = userHabitData.xp_per_unit || (userHabitData.unit === 'min' ? 30 : 1);
-  let lifetimeProgressDecrementValue = userHabitData.measurement_type === 'timer' ? (task.duration_used || 0) : ((task.xp_earned || 0) / xpPerUnit);
+  const lifetimeProgressDecrementValue = userHabitData.measurement_type === 'timer' ? (task.duration_used || 0) : ((task.xp_earned || 0) / xpPerUnit);
 
   await supabase.rpc('increment_lifetime_progress', { p_user_id: userId, p_habit_key: task.original_source, p_increment_value: -Math.round(lifetimeProgressDecrementValue) });
   if (profileData) await supabase.from('profiles').update({ tasks_completed_today: Math.max(0, (profileData.tasks_completed_today || 0) - 1) }).eq('id', userId);

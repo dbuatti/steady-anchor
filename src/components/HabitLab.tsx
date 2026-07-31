@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -10,25 +10,20 @@ import {
   RotateCcw,
   Compass,
   Loader2,
-  Zap,
   Target,
   Languages,
   BookOpen,
   RefreshCw,
-  ChevronRight,
   Brain,
-  Sparkles,
-  Heart,
-  Trophy,
-  History,
   ArrowUpRight,
   Timer,
-  Star
+  Star,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatTimeDisplay } from "@/utils/time-utils";
 import { audioManager } from "@/utils/audio";
-import { useLabSession, LabStage } from "@/hooks/useLabSession";
+import { useLabSession } from "@/hooks/useLabSession";
 import { useSimpleTasks } from "@/hooks/useSimpleTasks";
 import { useSession } from "@/contexts/SessionContext";
 import confetti from 'canvas-confetti';
@@ -45,6 +40,7 @@ export function HabitLab() {
   const [isActive, setIsActive] = useState(false);
   const [localSeconds, setLocalSeconds] = useState(0);
   const [sessionDetail, setSessionDetail] = useState('');
+  const [showCoachTip, setShowCoachTip] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const labTaskNames = ['Walking', 'Duolingo', 'Reading'];
@@ -286,18 +282,26 @@ export function HabitLab() {
         </div>
       </div>
 
-      {/* ADHD Coaching Card */}
+      {showCoachTip && (
       <Card className="w-full max-w-md bg-white/5 border-white/10 rounded-3xl overflow-hidden">
         <CardContent className="p-4 flex items-start gap-4">
           <div className="bg-white/10 p-2 rounded-xl shrink-0">
             <Brain className="w-5 h-5 text-white/80" />
           </div>
-          <div className="space-y-1">
+          <div className="flex-1 space-y-1">
             <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Coach's Insight</p>
             <p className="text-xs font-bold text-white/80 leading-relaxed italic">"{config.adhdTip}"</p>
           </div>
+          <button
+            onClick={() => setShowCoachTip(false)}
+            className="p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Dismiss coach tip"
+          >
+            <X className="w-4 h-4 text-white/40" />
+          </button>
         </CardContent>
       </Card>
+      )}
 
       {/* Main Lab Interface */}
       <Card className="w-full max-w-md bg-white/10 border-white/20 rounded-[3rem] overflow-hidden shadow-2xl">
@@ -470,12 +474,7 @@ export function HabitLab() {
         </CardContent>
       </Card>
 
-      {/* Navigation Hint */}
-      <div className="flex flex-col items-center gap-2 opacity-20">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white animate-pulse">
-          Swipe left to return
-        </p>
-      </div>
+
     </div>
   );
 }

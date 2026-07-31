@@ -17,7 +17,7 @@ export function BottomNav() {
   const activeTab = getActiveTab(location);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-3xl border-t border-white/10 pb-[env(safe-area-inset-bottom,0px)]">
+    <nav aria-label="Main" className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-3xl border-t border-white/10 pb-[env(safe-area-inset-bottom,0px)]">
       <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -26,6 +26,7 @@ export function BottomNav() {
             <button
               key={tab.id}
               onClick={() => navigate(tab.path)}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 w-16 h-full rounded-xl transition-all duration-200",
                 isActive

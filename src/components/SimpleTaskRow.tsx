@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface SimpleTaskRowProps {
   task: SimpleTask;
-  onComplete: (taskId: string) => Promise<any>;
+  onComplete: (taskId: string) => Promise<{ increased: boolean; newValue: number; newLevel: number; totalXp: number } | undefined>;
 }
 
 export function SimpleTaskRow({ task, onComplete }: SimpleTaskRowProps) {

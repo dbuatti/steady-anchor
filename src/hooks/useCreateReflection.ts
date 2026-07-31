@@ -26,7 +26,7 @@ const createReflection = async ({ userId, prompt, notes }: CreateReflectionParam
   }
 
   let reflectionId = existingReflection?.id;
-  let xpBonusAwarded = existingReflection?.xp_bonus_awarded || false;
+  const xpBonusAwarded = existingReflection?.xp_bonus_awarded || false;
 
   if (reflectionId) {
     // Update existing reflection
