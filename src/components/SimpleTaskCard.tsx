@@ -146,6 +146,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
         <button 
           onClick={toggleTimer}
           disabled={!isTimeTask || isTimerFinished}
+          aria-label={isTimeTask ? (isActive ? "Pause timer" : hasStarted ? "Resume timer" : "Start timer") : `Current value: ${task.current_value}`}
           className={cn(
             "relative group transition-transform active:scale-90",
             (!isTimeTask || isTimerFinished) && "cursor-default"
@@ -173,6 +174,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
             <Button 
               variant="secondary" 
               size="icon" 
+              aria-label={isActive ? "Pause" : "Resume"}
               className="w-16 h-16 rounded-full shadow-2xl bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-md"
               onClick={toggleTimer}
             >
@@ -181,6 +183,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
             <Button 
               variant="outline" 
               size="icon" 
+              aria-label="Reset timer"
               className="w-16 h-16 rounded-full border-4 border-white/20 bg-transparent hover:bg-white/10 text-white backdrop-blur-md"
               onClick={resetTimer}
             >
