@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { SimpleTask } from "@/hooks/useSimpleTasks";
 import { Check, Play, Pause, RotateCcw, Timer, X, Star, Zap } from "lucide-react";
@@ -103,7 +104,12 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
   const xpGain = getXpGainForTask(task.task_type, task.current_value);
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col items-center space-y-6 py-4">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-md mx-auto flex flex-col items-center space-y-6 py-4"
+    >
       <div className="text-center space-y-4 w-full">
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-6xl font-black tracking-tighter text-white uppercase italic break-words max-w-full">{task.name}</h2>
@@ -238,6 +244,6 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
           </Button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
