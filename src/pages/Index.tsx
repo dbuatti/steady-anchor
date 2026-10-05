@@ -1,184 +1,114 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { useSimpleTasks, SimpleTask } from '@/hooks/useSimpleTasks';
+import { useState, useEffect, useRef } from 'react';
+import { Loader2, Plus } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTodayTasks } from '@/hooks/useTodayTasks';
 import { SimpleTaskCard } from '@/components/SimpleTaskCard';
-import { SimpleTaskRow } from '@/components/SimpleTaskRow';
 import { DayReminder } from '@/components/DayReminder';
 import { HabitLab } from '@/components/HabitLab';
 import { ScreenBreakTimer } from '@/components/ScreenBreakTimer';
 import { CoachMarks } from '@/components/CoachMarks';
 import { HabitTemplatesPanel } from '@/components/HabitTemplatesPanel';
-import { Loader2, RefreshCw, Moon, Sparkles, Plus } from "lucide-react";
-import { useSession } from '@/contexts/SessionContext';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { isSameDay } from 'date-fns';
 import { RewardCeremony } from '@/components/dashboard/RewardCeremony';
+import { TodayProgress } from '@/components/today/TodayProgress';
+import { TodayDoneSummary } from '@/components/today/TodayDoneSummary';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+type HubView = 'lab' | 'task' | 'day';
+
+const fade = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
+
+/** How long a completed card lingers (for its level-up feedback) before the next one. */
+const NEXT_TASK_DELAY_MS = 2000;
 
 export default function Index() {
-  const { session, loading: sessionLoading } = useSession();
-  const { tasks, loading: tasksLoading, skipTask, completeTask } = useSimpleTasks();
-  const [isOverrideMode, setIsOverrideMode] = useState(false);
-  const [randomTask, setRandomTask] = useState<SimpleTask | null>(null);
+  const {
+    tasks, loading, hubTasks, labTasks, remainingTasks, spotlightTask,
+    isHubDone, isAllDone, completedCount, shuffle, completeTask, skipTask,
+  } = useTodayTasks();
+  const [showAll, setShowAll] = useState(false);
   const [showCeremony, setShowCeremony] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const view = (searchParams.get('view') as 'lab' | 'task' | 'day') || 'task';
+  const view = (searchParams.get('view') as HubView) || 'task';
 
-  const prevIsAllDone = useRef(false);
-
+  // Celebrate the moment everything flips to done (not on every render while done).
+  const wasAllDone = useRef(false);
   useEffect(() => {
-    if (!sessionLoading && !session) {
-      navigate('/login');
-    }
-  }, [session, sessionLoading, navigate]);
-
-  const isTaskSkippedToday = (task: SimpleTask) => {
-    if (!task.last_skipped_at) return false;
-    return isSameDay(new Date(task.last_skipped_at), new Date());
-  };
-
-  const eligibleTasks = useMemo(() => {
-    const currentHour = new Date().getHours();
-    const labTaskNames = ['Walking', 'Duolingo', 'Reading'];
-    const specialTaskNames = ['Screen Break'];
-
-    return tasks.filter(task => {
-      if (labTaskNames.includes(task.name) || specialTaskNames.includes(task.name)) {
-        return false;
-      }
-
-      if (task.name === 'Brush Teeth (Morning)') {
-        return currentHour >= 0 && currentHour < 12;
-      }
-      if (task.name === 'Brush Teeth (Evening)') {
-        return currentHour >= 18 && currentHour <= 23;
-      }
-      return true;
-    });
-  }, [tasks]);
-
-  const labTasks = useMemo(() => {
-    return tasks.filter(t => ['Walking', 'Duolingo', 'Reading'].includes(t.name));
-  }, [tasks]);
-
-  const isCentralDone = useMemo(() => {
-    if (eligibleTasks.length === 0) return false;
-    return eligibleTasks.every(t => t.completed_today || isTaskSkippedToday(t));
-  }, [eligibleTasks]);
-
-  const isLabDone = useMemo(() => {
-    if (labTasks.length === 0) return false;
-    return labTasks.every(t => t.completed_today);
-  }, [labTasks]);
-
-  const isAllDone = isCentralDone && isLabDone;
-
-  // Trigger ceremony when all tasks are completed for the first time
-  useEffect(() => {
-    if (isAllDone && !prevIsAllDone.current) {
-      setShowCeremony(true);
-    }
-    prevIsAllDone.current = isAllDone;
+    if (isAllDone && !wasAllDone.current) setShowCeremony(true);
+    wasAllDone.current = isAllDone;
   }, [isAllDone]);
 
-  const shuffleTask = () => {
-    const remainingTasks = eligibleTasks.filter(t => !t.completed_today && !isTaskSkippedToday(t));
-    if (remainingTasks.length > 0) {
-      if (remainingTasks.length > 1 && randomTask) {
-        const otherTasks = remainingTasks.filter(t => t.id !== randomTask.id);
-        const randomIndex = Math.floor(Math.random() * otherTasks.length);
-        setRandomTask(otherTasks[randomIndex]);
-      } else {
-        const randomIndex = Math.floor(Math.random() * remainingTasks.length);
-        setRandomTask(remainingTasks[randomIndex]);
-      }
-    } else {
-      setRandomTask(null);
-    }
-  };
+  // Cancel a pending "next task" if the hub unmounts.
+  const nextTaskTimer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(nextTaskTimer.current), []);
 
   const handleComplete = async (taskId: string) => {
     const result = await completeTask(taskId);
-    if (result && !isOverrideMode) {
-      setTimeout(() => {
-        shuffleTask();
-      }, 2000);
+    if (result && !showAll) {
+      clearTimeout(nextTaskTimer.current);
+      nextTaskTimer.current = setTimeout(() => shuffle(taskId), NEXT_TASK_DELAY_MS);
     }
     return result;
   };
 
   const handleSkip = async (taskId: string) => {
     await skipTask(taskId);
-    shuffleTask();
+    shuffle(taskId);
   };
 
-  useEffect(() => {
-    if (eligibleTasks.length > 0 && !randomTask) {
-      shuffleTask();
-    }
-  }, [eligibleTasks]);
-
-  if (sessionLoading || tasksLoading) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center h-dvh bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-16 h-16 animate-spin text-white" />
-          <p className="text-xl font-black text-white uppercase tracking-widest animate-pulse">Loading...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-xs font-black text-white/60 uppercase tracking-[0.3em] animate-pulse">Loading</p>
         </div>
       </div>
     );
   }
 
-  if (!session) return null;
-
-  const completedCount = [...eligibleTasks, ...labTasks].filter(t => t.completed_today).length;
-
   return (
     <div className={cn(
       "h-dvh transition-colors duration-1000 overflow-hidden select-none",
-      isAllDone ? "bg-black" : isCentralDone ? "bg-[#1a0d00]" : "bg-background"
+      isAllDone ? "bg-black" : isHubDone ? "bg-[#1a0d00]" : "bg-background"
     )}>
-      <RewardCeremony 
-        isOpen={showCeremony} 
-        onClose={() => setShowCeremony(false)} 
+      <RewardCeremony
+        isOpen={showCeremony}
+        onClose={() => setShowCeremony(false)}
         streak={tasks[0]?.habit_level || 0}
         completedCount={completedCount}
       />
 
       <CoachMarks />
 
-      <div className="fixed top-10 right-10 z-[100]" data-coach="screentimer">
+      <div
+        className="fixed top-[max(1rem,env(safe-area-inset-top))] right-4 sm:top-8 sm:right-8 z-[100]"
+        data-coach="screentimer"
+      >
         <ScreenBreakTimer />
       </div>
 
-      {/* Floating Add Habit Button */}
-      <Link to="/create-habit" data-coach="addhabit">
-        <Button
-          className="fixed bottom-24 right-6 z-[100] h-14 w-14 rounded-full shadow-2xl"
-          size="icon"
-          title="Add Habit"
-        >
+      <Button
+        asChild
+        size="icon"
+        className="fixed bottom-[calc(88px+env(safe-area-inset-bottom,0px))] right-4 sm:right-6 z-[100] h-14 w-14 rounded-full shadow-2xl"
+      >
+        <Link to="/create-habit" data-coach="addhabit" aria-label="Add habit" title="Add habit">
           <Plus className="w-7 h-7" />
-        </Button>
-      </Link>
+        </Link>
+      </Button>
 
       <AnimatePresence>
-        {isCentralDone && !isAllDone && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-0 pointer-events-none bg-black/40"
-          />
-        )}
-        {isAllDone && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-0 pointer-events-none bg-black/80"
+        {(isHubDone || isAllDone) && (
+          <motion.div
+            key={isAllDone ? 'all' : 'hub'}
+            {...fade}
+            className={cn(
+              "fixed inset-0 z-0 pointer-events-none",
+              isAllDone ? "bg-black/80" : "bg-black/40"
+            )}
           />
         )}
       </AnimatePresence>
@@ -186,132 +116,73 @@ export default function Index() {
       <div className="h-full relative z-10" data-coach="task-area">
         <AnimatePresence mode="wait">
           {view === 'lab' && (
-            <motion.div
-              key="lab"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={cn("h-full overflow-y-auto", isAllDone && "opacity-20")}
-            >
+            <motion.div key="lab" {...fade} className={cn("h-full overflow-y-auto", isAllDone && "opacity-20")}>
               <HabitLab />
             </motion.div>
           )}
 
           {view === 'task' && (
-            <motion.div
-              key="task"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-full relative overflow-hidden"
-            >
+            <motion.div key="task" {...fade} className="h-full relative overflow-hidden">
               <div className="h-full overflow-y-auto pb-[calc(64px+env(safe-area-inset-bottom,0px))]">
                 <div className={cn(
-                  "container max-w-2xl pt-12 md:pt-20 space-y-8 md:space-y-10 transition-all duration-1000",
-                  isAllDone ? "opacity-10 scale-95 grayscale" : isCentralDone ? "opacity-100 scale-100" : "opacity-100"
+                  // Tight side gutters so the hero card gets the full phone width.
+                  "mx-auto w-full max-w-2xl px-4 sm:px-6 pt-20 md:pt-24 space-y-8 md:space-y-10 transition-all duration-1000",
+                  isAllDone && "opacity-10 scale-95 grayscale"
                 )}>
-
-                  {isCentralDone && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                      <div className="text-center space-y-2">
-                        <div className="mx-auto w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
-                          {isAllDone ? <Sparkles className="w-8 h-8 text-white/60" /> : <Moon className="w-8 h-8 text-white/40" />}
-                        </div>
-                        <h3 className="text-3xl font-black text-white/40 uppercase italic tracking-tighter">
-                          {isAllDone ? "Journey Harmonized" : "Central Tasks Done"}
-                        </h3>
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
-                          {isAllDone ? "Everything complete" : "Quick log remaining tasks"}
-                        </p>
-                      </div>
-
-                      <div className="grid gap-3 max-w-md mx-auto">
-                        {[...eligibleTasks, ...labTasks].map(task => (
-                          <SimpleTaskRow 
-                            key={task.id} 
-                            task={task} 
-                            onComplete={handleComplete} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {!isCentralDone && (
+                  {isHubDone ? (
+                    <TodayDoneSummary
+                      isAllDone={isAllDone}
+                      tasks={[...hubTasks, ...labTasks]}
+                      onComplete={handleComplete}
+                    />
+                  ) : (
                     <>
-                      {eligibleTasks.length > 1 && (
-                        <div className="flex justify-center items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
-                          {!isOverrideMode && (
-                            <Button 
-                              onClick={shuffleTask} 
-                              variant="ghost" 
-                              size="icon"
-                              className="w-11 h-11 rounded-full text-white/20 hover:text-white hover:bg-white/10 transition-all active:rotate-180 duration-500"
-                              title="Shuffle Task"
-                            >
-                              <RefreshCw className="w-5 h-5" />
-                            </Button>
-                          )}
-                          <button
-                            onClick={() => setIsOverrideMode(!isOverrideMode)}
-                            className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-all active:scale-95"
-                          >
-                            {isOverrideMode ? 'Random' : 'Show all'}
-                          </button>
-                        </div>
+                      {hubTasks.length > 0 && (
+                        <TodayProgress
+                          done={hubTasks.length - remainingTasks.length}
+                          total={hubTasks.length}
+                          showAll={showAll}
+                          onToggleShowAll={() => setShowAll(v => !v)}
+                          onShuffle={spotlightTask ? () => shuffle(spotlightTask.id) : undefined}
+                        />
                       )}
 
-                      <div className="space-y-12">
-                        {isOverrideMode ? (
-                          <div className="grid gap-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                            {eligibleTasks.map(task => (
-                              <SimpleTaskCard 
-                                key={task.id} 
-                                task={task} 
-                                onComplete={handleComplete} 
-                              />
-                            ))}
+                      {showAll ? (
+                        <div className="grid gap-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                          {hubTasks.map(task => (
+                            <SimpleTaskCard key={task.id} task={task} onComplete={handleComplete} />
+                          ))}
+                        </div>
+                      ) : (
+                        spotlightTask && (
+                          <div key={spotlightTask.id} className="animate-in zoom-in-95 duration-500">
+                            <SimpleTaskCard
+                              task={spotlightTask}
+                              onComplete={handleComplete}
+                              onShuffle={() => handleSkip(spotlightTask.id)}
+                              showShuffle
+                            />
                           </div>
-                        ) : (
-                          randomTask && (
-                            <div className="animate-in zoom-in-95 duration-500">
-                              <SimpleTaskCard 
-                                task={randomTask} 
-                                onComplete={handleComplete} 
-                                onShuffle={() => handleSkip(randomTask.id)}
-                                showShuffle={true}
-                              />
-                            </div>
-                          )
-                        )}
-                      </div>
+                        )
+                      )}
                     </>
                   )}
 
-                  {/* Templates Quick-Add Panel — shown when user has few habits */}
-                  {eligibleTasks.length < 3 && !isCentralDone && !isOverrideMode && (
+                  {/* Templates quick-add — shown while the user has only a few habits */}
+                  {hubTasks.length < 3 && !isHubDone && !showAll && (
                     <div className="pt-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
                       <HabitTemplatesPanel
-                        onAddHabit={(data) => {
-                          navigate('/create-habit', { state: { templateToPreFill: data } });
-                        }}
+                        onAddHabit={(data) => navigate('/create-habit', { state: { templateToPreFill: data } })}
                       />
                     </div>
                   )}
-
                 </div>
               </div>
             </motion.div>
           )}
 
           {view === 'day' && (
-            <motion.div
-              key="day"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={cn("h-full overflow-hidden", isAllDone && "opacity-10")}
-            >
+            <motion.div key="day" {...fade} className={cn("h-full overflow-hidden", isAllDone && "opacity-10")}>
               <DayReminder />
             </motion.div>
           )}

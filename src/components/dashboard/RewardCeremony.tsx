@@ -26,7 +26,7 @@ export const RewardCeremony: React.FC<RewardCeremonyProps> = ({
 
       const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-      const interval: any = setInterval(function() {
+      const interval = setInterval(function() {
         const timeLeft = animationEnd - Date.now();
 
         if (timeLeft <= 0) {
@@ -102,7 +102,7 @@ export const RewardCeremony: React.FC<RewardCeremonyProps> = ({
             <div className="pt-4">
               <Button 
                 onClick={onClose}
-                className="w-full h-16 rounded-[2rem] bg-white text-orange-600 font-black text-lg hover:bg-white/90 shadow-xl transition-all active:scale-95"
+                className="w-full h-16 rounded-[2rem] bg-primary text-primary-foreground font-black text-lg hover:bg-primary/90 shadow-xl transition-all active:scale-95"
               >
                 REST WELL
               </Button>

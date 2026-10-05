@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { SimpleTask } from "@/hooks/useSimpleTasks";
+import type { SimpleTask, TaskCompletionResult } from "@/hooks/useSimpleTasks";
 import { Check, Play, Pause, RotateCcw, Timer, X, Star, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -11,7 +11,7 @@ import { getLevelXpStats, getXpGainForTask, formatMilestone } from "@/utils/habi
 
 interface SimpleTaskCardProps {
   task: SimpleTask;
-  onComplete: (taskId: string) => Promise<{ increased: boolean; newValue: number; newLevel: number; totalXp: number } | undefined>;
+  onComplete: (taskId: string) => Promise<TaskCompletionResult | undefined>;
   onShuffle?: () => void;
   showShuffle?: boolean;
 }
@@ -204,7 +204,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
           <div className="flex flex-col gap-4">
             <Button 
               onClick={startTimer}
-              className="w-full h-16 sm:h-24 text-2xl sm:text-3xl font-black rounded-[2rem] sm:rounded-[3rem] gap-4 bg-white text-orange-500 shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all"
+              className="w-full h-16 sm:h-24 text-2xl sm:text-3xl font-black rounded-[2rem] sm:rounded-[3rem] gap-4 bg-primary text-primary-foreground shadow-[0_20px_50px_rgba(0,0,0,0.25)] hover:scale-[1.02] active:scale-95 transition-all"
             >
               <Timer className="w-10 h-10" />
               START!
@@ -224,7 +224,7 @@ export function SimpleTaskCard({ task, onComplete, onShuffle, showShuffle }: Sim
             onClick={handleComplete} 
             disabled={completing || !canComplete}
             className={cn(
-              "w-full h-16 sm:h-24 text-2xl sm:text-3xl font-black rounded-[2rem] sm:rounded-[3rem] gap-4 bg-white text-orange-500 shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all",
+              "w-full h-16 sm:h-24 text-2xl sm:text-3xl font-black rounded-[2rem] sm:rounded-[3rem] gap-4 bg-primary text-primary-foreground shadow-[0_20px_50px_rgba(0,0,0,0.25)] hover:scale-[1.02] active:scale-95 transition-all",
               !canComplete && "opacity-30 cursor-not-allowed grayscale"
             )}
           >

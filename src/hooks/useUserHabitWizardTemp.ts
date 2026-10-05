@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { showError, showSuccess } from '@/utils/toast';
-import { MeasurementType } from '@/types/habit';
+import { GrowthType, MeasurementType } from '@/types/habit';
 
 export interface WizardHabitData {
   name: string;
@@ -59,6 +59,8 @@ export interface WizardHabitData {
   energy_cost_per_unit: number;
   dependent_on_habit_id: string | null;
   plateau_days_required: number;
+  growth_type?: GrowthType;
+  growth_value?: number;
   window_start: string | null;
   window_end: string | null;
   carryover_enabled: boolean;

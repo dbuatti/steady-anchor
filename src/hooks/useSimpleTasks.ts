@@ -21,6 +21,13 @@ export interface SimpleTask {
   effort_multiplier?: number;
 }
 
+export interface TaskCompletionResult {
+  increased: boolean;
+  newValue: number;
+  newLevel: number;
+  totalXp: number;
+}
+
 export function useSimpleTasks() {
   const { session } = useSession();
   const queryClient = useQueryClient();
@@ -160,7 +167,7 @@ export function useSimpleTasks() {
   });
 
   const completeTaskMutation = useMutation({
-    mutationFn: async (taskId: string) => {
+    mutationFn: async (taskId: string): Promise<TaskCompletionResult | undefined> => {
       if (!userId) return;
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;

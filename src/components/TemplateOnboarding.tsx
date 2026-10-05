@@ -41,7 +41,7 @@ export function TemplateOnboarding({ onAccept }: TemplateOnboardingProps) {
 
       <Button 
         onClick={onAccept} 
-        className="w-full h-24 text-3xl font-black rounded-[3rem] bg-white text-orange-500 shadow-2xl hover:scale-105 active:scale-95 transition-all"
+        className="w-full h-24 text-3xl font-black rounded-[3rem] bg-primary text-primary-foreground shadow-2xl hover:scale-105 active:scale-95 transition-all"
       >
         Let's Go!
       </Button>

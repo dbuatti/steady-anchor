@@ -1,18 +1,17 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { LAB_TASK_NAMES, isLabTask, type LabTaskName } from '@/lib/task-groups';
+import { LAB_CONFIGS } from '@/lib/lab-configs';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { 
   Check, 
-  CloudSun, 
   Play, 
   Pause, 
   RotateCcw,
   Compass,
   Loader2,
   Target,
-  Languages,
-  BookOpen,
   RefreshCw,
   Brain,
   ArrowUpRight,
@@ -43,87 +42,14 @@ export function HabitLab() {
   const [showCoachTip, setShowCoachTip] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const labTaskNames = ['Walking', 'Duolingo', 'Reading'];
-  const labTasks = tasks.filter(t => labTaskNames.includes(t.name));
+  const labTasks = tasks.filter(isLabTask);
   const currentTask = tasks.find(t => t.name === labType);
   
   const currentGoalSeconds = currentTask?.current_value || 600;
   const habitXp = currentTask?.habit_xp || 0;
   const habitLevel = currentTask?.habit_level || 1;
 
-  const labConfigs: Record<string, any> = {
-    'Walking': {
-      icon: CloudSun,
-      color: "text-orange-500",
-      bgColor: "bg-orange-500/10",
-      borderColor: "border-orange-500/20",
-      adhdTip: "The transition is the hardest part. Don't think about the walk, just think about the shoes.",
-      detailLabel: "Extra minutes or steps?",
-      detailPlaceholder: "e.g. 5 extra mins",
-      futureVision: {
-        unit: "hours outside",
-        multiplier: 1, // based on minutes
-        projections: [
-          { years: 1, text: "60 hours of fresh air" },
-          { years: 3, text: "A stronger, calmer heart" },
-          { years: 5, text: "2,000 miles of exploration" }
-        ]
-      },
-      microSteps: [
-        { id: 'shoes', label: "Shoes on", icon: "👟" },
-        { id: 'door', label: "Door open", icon: "🚪" },
-        { id: 'outside', label: "Step outside", icon: "🌳" }
-      ]
-    },
-    'Duolingo': {
-      icon: Languages,
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/20",
-      adhdTip: "Forget the streak. Forget the leaderboard. Just focus on one single sound today.",
-      detailLabel: "How many lessons?",
-      detailPlaceholder: "e.g. 2 lessons",
-      futureVision: {
-        unit: "lessons",
-        multiplier: 1,
-        projections: [
-          { years: 1, text: "365 new concepts learned" },
-          { years: 3, text: "Conversational confidence" },
-          { years: 5, text: "Fluent in a second world" }
-        ]
-      },
-      microSteps: [
-        { id: 'phone', label: "Phone in hand", icon: "📱" },
-        { id: 'open', label: "App open", icon: "🦉" },
-        { id: 'start', label: "Start 1 lesson", icon: "✨" }
-      ]
-    },
-    'Reading': {
-      icon: BookOpen,
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/20",
-      adhdTip: "If your mind wanders, that's okay. It's just your brain exploring. Gently come back to the next word.",
-      detailLabel: "Pages or chapters?",
-      detailPlaceholder: "e.g. 10 pages",
-      futureVision: {
-        unit: "books",
-        multiplier: 0.05, // 10 mins ~ 5 pages
-        projections: [
-          { years: 1, text: "12 books finished" },
-          { years: 3, text: "A library of new ideas" },
-          { years: 5, text: "A transformed perspective" }
-        ]
-      },
-      microSteps: [
-        { id: 'grab', label: "Grab book", icon: "📖" },
-        { id: 'open', label: "Open to page", icon: "🔖" },
-        { id: 'sentence', label: "Read 1 sentence", icon: "✍️" }
-      ]
-    }
-  };
-
-  const config = useMemo(() => labConfigs[labType || 'Walking'] || labConfigs['Walking'], [labType]);
+  const config = LAB_CONFIGS[labType as LabTaskName] ?? LAB_CONFIGS.Walking;
 
   useEffect(() => {
     if (!sessionLoading) {
@@ -138,9 +64,9 @@ export function HabitLab() {
   }, [sessionLoading, tasksLoading, labType, labTasks, updateSession]);
 
   const handleSwitchTask = async () => {
-    const currentIndex = labTaskNames.indexOf(labType || '');
-    const nextIndex = (currentIndex + 1) % labTaskNames.length;
-    const nextTaskName = labTaskNames[nextIndex];
+    const currentIndex = (LAB_TASK_NAMES as readonly string[]).indexOf(labType || '');
+    const nextIndex = (currentIndex + 1) % LAB_TASK_NAMES.length;
+    const nextTaskName = LAB_TASK_NAMES[nextIndex];
     setIsActive(false);
     if (timerRef.current) clearInterval(timerRef.current);
     setLocalSeconds(0);
@@ -321,7 +247,7 @@ export function HabitLab() {
                 </div>
 
                 <div className="grid gap-3">
-                  {config.microSteps.map((step: any) => {
+                  {config.microSteps.map((step) => {
                     const isDone = completedMicroSteps.includes(step.id);
                     return (
                       <button
@@ -330,7 +256,7 @@ export function HabitLab() {
                         className={cn(
                           "flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-300",
                           isDone 
-                            ? "bg-white text-orange-500 border-white scale-[0.98]" 
+                            ? "bg-primary text-primary-foreground border-primary scale-[0.98]" 
                             : "bg-white/5 border-white/10 text-white hover:bg-white/10"
                         )}
                       >
@@ -393,7 +319,7 @@ export function HabitLab() {
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Future Horizon</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {config.futureVision.projections.map((proj: any, i: number) => (
+                    {config.futureVision.projections.map((proj, i) => (
                       <div key={i} className="space-y-1">
                         <p className="text-[8px] font-black text-white/30 uppercase">{proj.years} Year{proj.years > 1 ? 's' : ''}</p>
                         <p className="text-[10px] font-bold text-white/80 leading-tight">{proj.text}</p>

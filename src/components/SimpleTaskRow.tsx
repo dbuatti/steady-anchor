@@ -1,13 +1,13 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { SimpleTask } from "@/hooks/useSimpleTasks";
+import type { SimpleTask, TaskCompletionResult } from "@/hooks/useSimpleTasks";
 import { Check, Timer, Loader2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SimpleTaskRowProps {
   task: SimpleTask;
-  onComplete: (taskId: string) => Promise<{ increased: boolean; newValue: number; newLevel: number; totalXp: number } | undefined>;
+  onComplete: (taskId: string) => Promise<TaskCompletionResult | undefined>;
 }
 
 export function SimpleTaskRow({ task, onComplete }: SimpleTaskRowProps) {
@@ -55,7 +55,7 @@ export function SimpleTaskRow({ task, onComplete }: SimpleTaskRowProps) {
           "h-10 px-5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95",
           task.completed_today 
             ? "bg-green-500 text-white shadow-lg shadow-green-500/20" 
-            : "bg-white text-orange-500 hover:bg-white/90"
+            : "bg-primary text-primary-foreground hover:bg-primary/90"
         )}
       >
         {completing ? (

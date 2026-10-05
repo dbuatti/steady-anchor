@@ -1,5 +1,5 @@
-
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { SCREEN_BREAK_TASK_NAME } from '@/lib/task-groups';
 import { Button } from "@/components/ui/button";
 import { Square, Loader2, Coffee, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ export function ScreenBreakTimer() {
   const [isSyncing, setIsSyncing] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   
-  const screenBreakTask = tasks.find(t => t.name === 'Screen Break');
+  const screenBreakTask = tasks.find(t => t.name === SCREEN_BREAK_TASK_NAME);
   const targetSeconds = screenBreakTask?.current_value || 5;
 
   // Calculate mastery progress for the ring
@@ -42,7 +42,7 @@ export function ScreenBreakTimer() {
         .from('simple_tasks')
         .insert({
           user_id: session.user.id,
-          name: 'Screen Break',
+          name: SCREEN_BREAK_TASK_NAME,
           task_type: 'time',
           current_value: 5,
           increment_value: 5
@@ -189,7 +189,7 @@ export function ScreenBreakTimer() {
           className={cn(
             "h-14 w-14 rounded-full p-0 transition-all duration-500 border-2 z-10",
             isTiming 
-              ? "bg-white text-orange-500 shadow-xl scale-110 border-white animate-pulse" 
+              ? "bg-primary text-primary-foreground shadow-xl scale-110 border-primary animate-pulse" 
               : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border-white/10"
           )}
           title={isTiming ? "Stop Break" : "Start Screen Break"}
@@ -204,7 +204,7 @@ export function ScreenBreakTimer() {
         </Button>
         
         {!isTiming && !isSyncing && (
-          <div className="absolute -bottom-1 -right-1 bg-white text-orange-500 text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm border border-orange-100 flex items-center gap-0.5 z-20">
+          <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm border border-primary/30 flex items-center gap-0.5 z-20">
             <Target className="w-2 h-2" />
             {targetSeconds}s
           </div>

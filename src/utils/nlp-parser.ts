@@ -10,7 +10,7 @@ interface ParsedHabit {
   icon_name: string;
   short_description: string;
   motivation: string;
-  time_of_day: string | null;
+  time_of_day: TimeOfDay | null;
   confidence: number;
   reasoning: string[];
   growth_value: number;
@@ -48,7 +48,9 @@ const FREQUENCY_PATTERNS = [
   { regex: /(weekend)/i, value: 2 },
 ];
 
-const TIME_OF_DAY_PATTERNS = [
+export type TimeOfDay = 'morning' | 'midday' | 'evening';
+
+const TIME_OF_DAY_PATTERNS: { regex: RegExp; value: TimeOfDay }[] = [
   { regex: /(first thing|when i wake|wake up|in the morning|morning|a\.?m\.?)/i, value: 'morning' },
   { regex: /(lunch|noon|midday|afternoon)/i, value: 'midday' },
   { regex: /(evening|before bed|at night|night|p\.?m\.?|dinner|sunset)/i, value: 'evening' },
@@ -224,10 +226,10 @@ export function parseHabitInput(text: string): ParsedHabit {
   if (name.length > 60) name = name.substring(0, 57) + '...';
 
   // 7. Detect time of day
-  let time_of_day: string | null = null;
+  let time_of_day: TimeOfDay | null = null;
   for (const pattern of TIME_OF_DAY_PATTERNS) {
     if (lower.match(pattern.regex)) {
-      time_of_day = pattern.value as string;
+      time_of_day = pattern.value;
       confidence += 5;
       reasoning.push(`Detected time: ${time_of_day}`);
       break;
